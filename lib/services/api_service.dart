@@ -9,7 +9,7 @@ class ApiService {
   static Future<User?> login(String username, String password) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/login.php'),
+        Uri.parse('$baseUrl/endpoints/login.php'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'usuario': username,
@@ -33,7 +33,7 @@ class ApiService {
   static Future<List<MovieGenre>> getMoviesByGenre() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/peliculas.php'),
+        Uri.parse('$baseUrl/endpoints/peliculas.php'),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -72,7 +72,7 @@ class ApiService {
   static Future<List<Movie>> getRentedMovies(String userId) async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/peliculasrentadas.php?user_id=\$userId'),
+        Uri.parse('$baseUrl/endpoints/peliculasrentadas.php?user_id=\$userId'),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -94,7 +94,7 @@ class ApiService {
   static Future<List<Movie>> getTop10Movies() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/peliculas.php?top10=true'),
+        Uri.parse('$baseUrl/endpoints/peliculas.php?top10=true'),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -116,7 +116,7 @@ class ApiService {
   static Future<List<Movie>> searchMovies(String query) async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/peliculas.php?search=\$query'),
+        Uri.parse('$baseUrl/endpoints/peliculas.php?search=\$query'),
         headers: {'Content-Type': 'application/json'},
       );
 
@@ -135,7 +135,7 @@ class ApiService {
     }
   }
 
-  // Mock data for development and fallback
+  // datos de testeo
   static List<MovieGenre> _getMockMoviesByGenre() {
     return [
       MovieGenre(name: 'Acción', movies: [
