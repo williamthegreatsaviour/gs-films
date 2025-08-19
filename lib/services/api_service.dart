@@ -135,7 +135,7 @@ class ApiService {
     }
   }
 
-  // Mock data for development and fallback
+  // datos de testeo
   static List<MovieGenre> _getMockMoviesByGenre() {
     return [
       MovieGenre(name: 'Acción', movies: [
