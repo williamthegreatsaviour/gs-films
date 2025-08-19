@@ -1,4 +1,4 @@
-package com.mycompany.CounterApp
+package com.mycompany.gsfs
 
 import io.flutter.embedding.android.FlutterActivity
 
