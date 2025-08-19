@@ -1,7 +1,7 @@
 name: cinepulso
 description: "Sumérgete en el universo cinematográfico de GSFilms con esta elegante aplicación móvil en Flutter, tu portal personal a un mundo de películas, diseñada con un tema oscuro y toques dorados neón para una experiencia visual inmersiva."
 publish_to: "none"
-version: 1.0.0
+version: 1.0.1+1
 
 environment:
   sdk: ^3.6.0

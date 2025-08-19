@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:cinepulso/providers/auth_provider.dart';
 import 'package:cinepulso/screens/home_screen.dart';
 import 'package:cinepulso/theme.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -27,7 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _login() async {
     if (_formKey.currentState?.validate() ?? false) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      
+
       final success = await authProvider.login(
         _usernameController.text.trim(),
         _passwordController.text,
@@ -76,10 +76,10 @@ class _LoginScreenState extends State<LoginScreen> {
               Text(
                 'GSFilms',
                 style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                  color: GSFilmsColors.neonGold,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 2,
-                ),
+                      color: GSFilmsColors.neonGold,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 2,
+                    ),
               ),
               const SizedBox(height: 50),
               // Login Form
@@ -92,23 +92,29 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: _usernameController,
                       decoration: InputDecoration(
                         labelText: 'Usuario',
-                        labelStyle: const TextStyle(color: GSFilmsColors.lightGray),
-                        prefixIcon: const Icon(Icons.person, color: GSFilmsColors.neonGold),
+                        labelStyle:
+                            const TextStyle(color: GSFilmsColors.lightGray),
+                        prefixIcon: const Icon(Icons.person,
+                            color: GSFilmsColors.neonGold),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: GSFilmsColors.mediumGray),
+                          borderSide:
+                              const BorderSide(color: GSFilmsColors.mediumGray),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: GSFilmsColors.neonGold),
+                          borderSide:
+                              const BorderSide(color: GSFilmsColors.neonGold),
                         ),
                         errorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: GSFilmsColors.error),
+                          borderSide:
+                              const BorderSide(color: GSFilmsColors.error),
                         ),
                         focusedErrorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: GSFilmsColors.error),
+                          borderSide:
+                              const BorderSide(color: GSFilmsColors.error),
                         ),
                         filled: true,
                         fillColor: GSFilmsColors.charcoal,
@@ -128,11 +134,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         labelText: 'Contraseña',
-                        labelStyle: const TextStyle(color: GSFilmsColors.lightGray),
-                        prefixIcon: const Icon(Icons.lock, color: GSFilmsColors.neonGold),
+                        labelStyle:
+                            const TextStyle(color: GSFilmsColors.lightGray),
+                        prefixIcon: const Icon(Icons.lock,
+                            color: GSFilmsColors.neonGold),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                            _obscurePassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
                             color: GSFilmsColors.lightGray,
                           ),
                           onPressed: () {
@@ -143,19 +153,23 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: GSFilmsColors.mediumGray),
+                          borderSide:
+                              const BorderSide(color: GSFilmsColors.mediumGray),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: GSFilmsColors.neonGold),
+                          borderSide:
+                              const BorderSide(color: GSFilmsColors.neonGold),
                         ),
                         errorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: GSFilmsColors.error),
+                          borderSide:
+                              const BorderSide(color: GSFilmsColors.error),
                         ),
                         focusedErrorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: GSFilmsColors.error),
+                          borderSide:
+                              const BorderSide(color: GSFilmsColors.error),
                         ),
                         filled: true,
                         fillColor: GSFilmsColors.charcoal,
@@ -178,18 +192,22 @@ class _LoginScreenState extends State<LoginScreen> {
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: GSFilmsColors.error.withValues(alpha: 0.1),
+                                  color: GSFilmsColors.error
+                                      .withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: GSFilmsColors.error),
+                                  border:
+                                      Border.all(color: GSFilmsColors.error),
                                 ),
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.error, color: GSFilmsColors.error),
+                                    const Icon(Icons.error,
+                                        color: GSFilmsColors.error),
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
                                         authProvider.error!,
-                                        style: const TextStyle(color: GSFilmsColors.error),
+                                        style: const TextStyle(
+                                            color: GSFilmsColors.error),
                                       ),
                                     ),
                                   ],
@@ -223,48 +241,24 @@ class _LoginScreenState extends State<LoginScreen> {
                                     height: 24,
                                     child: CircularProgressIndicator(
                                       valueColor: AlwaysStoppedAnimation<Color>(
-                                        GSFilmsColors.black,
+                                        GSFilmsColors.white,
                                       ),
                                       strokeWidth: 2,
                                     ),
                                   )
                                 : Text(
                                     'Iniciar Sesión',
-                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      color: GSFilmsColors.black,
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: GSFilmsColors.black,
+                                        ),
                                   ),
                           );
                         },
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 40),
-              // Demo credentials
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: GSFilmsColors.charcoal.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: GSFilmsColors.mediumGray),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      'Credenciales de prueba:',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: GSFilmsColors.neonGold,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Usuario: demo\nContraseña: 123456',
-                      style: TextStyle(color: GSFilmsColors.lightGray),
-                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
