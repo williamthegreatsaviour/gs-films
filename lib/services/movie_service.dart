@@ -1,31 +1,34 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../utils/constants.dart';
+import 'package:dio/dio.dart';
+import 'api_service.dart';
 
 class MovieService {
-  Future<Map<String, dynamic>> getDashboardData(String token) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/v2/dashboard-detail-data'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
+  final Dio _dio = ApiService().dio;
 
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Error al obtener datos del dashboard');
+  Future<Map<String, dynamic>> getDashboard() async {
+    final resp = await _dio.get('/v2/dashboard-detail-data');
+    return Map<String, dynamic>.from(resp.data ?? {});
+  }
+
+  Future<Map<String, dynamic>> getMovieDetails(int movieId) async {
+    final resp = await _dio.get('/v2/movie-details', queryParameters: {'movie_id': movieId});
+    return Map<String, dynamic>.from(resp.data ?? {});
+  }
+
+  Future<bool> toggleFavorite(int movieId) async {
+    try {
+      final resp = await _dio.post('/favorite/toggle', data: {'movie_id': movieId});
+      return resp.data['success'] == true;
+    } catch (_) {
+      return false;
     }
   }
 
-  Future<Map<String, dynamic>> getMovieDetails(String token, int movieId) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/v2/movie-details?movie_id=$movieId'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Error al obtener detalles de la película');
+  Future<bool> toggleWatchlist(int movieId) async {
+    try {
+      final resp = await _dio.post('/watchlist/toggle', data: {'movie_id': movieId});
+      return resp.data['success'] == true;
+    } catch (_) {
+      return false;
     }
   }
 }
