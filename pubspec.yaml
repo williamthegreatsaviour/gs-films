@@ -1,28 +1,32 @@
-name: cinepulso
-description: "Sumérgete en el universo cinematográfico de GSFilms con esta elegante aplicación móvil en Flutter, tu portal personal a un mundo de películas, diseñada con un tema oscuro y toques dorados neón para una experiencia visual inmersiva."
-publish_to: "none"
-version: 1.0.1+1
+name: gsfilms_app
+description: Cliente Flutter GSFilms
+publish_to: 'none'
+version: 1.0.0+1
 
 environment:
-  sdk: ^3.6.0
+  sdk: ">=2.18.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.8
-  google_fonts: ^6.1.0
-  http: ^1.0.0
-  shared_preferences: ^2.0.0
-  flutter_secure_storage: ^9.2.4
-  provider: ^6.0.0
-  webview_flutter: ^4.0.0
+
+  dio: ^5.1.2
+  http: ^1.1.0
+  shared_preferences: ^2.1.1
+  flutter_secure_storage: ^9.0.0
+  provider: ^6.0.5
+  cached_network_image: ^3.2.3
+  carousel_slider: ^4.2.0
+  better_player: ^0.0.96
+  intl: ^0.18.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
+  build_runner: ^2.4.6
+  json_serializable: ^6.6.0
 
 flutter:
   uses-material-design: true
   assets:
-    - assets/images/
+    - assets/images/splash.png
