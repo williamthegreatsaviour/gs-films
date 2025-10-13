@@ -1,1 +1,2 @@
-const String baseUrl = 'https://gsfilms.com.mx/public/api';
+const String baseUrl = 'https://gsfilms.com.mx/api'; 
+const int splashDurationSeconds = 3;
