@@ -1,18 +1,38 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../utils/constants.dart';
+import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'api_service.dart';
 
 class AuthService {
-  Future<Map<String, dynamic>> login(String email, String password) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/login'),
-      body: {'email': email, 'password': password},
-    );
+  final Dio _dio = ApiService().dio;
 
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Error al iniciar sesión');
+  Future<Map<String, dynamic>> login(String email, String password) async {
+    try {
+      final resp = await _dio.post('/login', data: {'email': email, 'password': password});
+      final data = resp.data ?? {};
+      String? token;
+      if (data['token'] != null) token = data['token'];
+      else if (data['data'] != null && data['data']['token'] != null) token = data['data']['token'];
+
+      if (token != null) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', token);
+      }
+      return Map<String, dynamic>.from(data);
+    } on DioError catch (e) {
+      return {'error': e.response?.data ?? e.message};
     }
+  }
+
+  Future<void> logout() async {
+    try {
+      await _dio.get('/logout');
+    } catch (_) {}
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token');
+  }
+
+  Future<String?> token() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token');
   }
 }
