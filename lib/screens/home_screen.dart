@@ -1,31 +1,39 @@
 import 'package:flutter/material.dart';
 import '../services/movie_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/movie_card.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final _movieService = MovieService();
+  final MovieService _service = MovieService();
   List<dynamic> _movies = [];
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchMovies();
+    _load();
   }
 
-  Future<void> _fetchMovies() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token') ?? '';
-
-    final data = await _movieService.getDashboardData(token);
-    setState(() => _movies = data['movies'] ?? []);
+  Future<void> _load() async {
+    setState(() => _loading = true);
+    try {
+      final data = await _service.getDashboard();
+      // posible estructura: data['movies'] o data['data']['movies']
+      final movies = data['movies'] ?? data['data'] ?? [];
+      setState(() {
+        _movies = movies as List<dynamic>;
+        _loading = false;
+      });
+    } catch (e) {
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error cargando datos')));
+    }
   }
 
   @override
@@ -33,24 +41,24 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('GSFilms'),
-        backgroundColor: Colors.black,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () => Navigator.pushNamed(context, '/profile'),
-          ),
+          IconButton(icon: const Icon(Icons.person), onPressed: ()=>Navigator.pushNamed(context, '/profile')),
         ],
       ),
-      body: _movies.isEmpty
-          ? const Center(child: CircularProgressIndicator(color: Colors.amber))
-          : GridView.builder(
-              padding: const EdgeInsets.all(10),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2, childAspectRatio: 0.7, crossAxisSpacing: 10, mainAxisSpacing: 10,
-              ),
+      body: _loading
+        ? const Center(child: CircularProgressIndicator(color: Color(0xFFFFD700)))
+        : RefreshIndicator(
+            onRefresh: _load,
+            child: GridView.builder(
+              padding: const EdgeInsets.all(12),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, childAspectRatio: 0.65, crossAxisSpacing: 10, mainAxisSpacing: 10),
               itemCount: _movies.length,
-              itemBuilder: (context, index) => MovieCard(movie: _movies[index]),
+              itemBuilder: (context, i) {
+                final m = _movies[i];
+                return MovieCard(movie: m);
+              },
             ),
+          ),
     );
   }
 }
