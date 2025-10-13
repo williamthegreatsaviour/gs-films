@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'routes/app_routes.dart';
-import 'screens/splash_screen.dart';
 
 void main() {
   runApp(const GSFilmsApp());
@@ -14,10 +13,14 @@ class GSFilmsApp extends StatelessWidget {
     return MaterialApp(
       title: 'GSFilms',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark(useMaterial3: true),
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        primaryColor: const Color(0xFFFFD700),
+        scaffoldBackgroundColor: Colors.black,
+        appBarTheme: const AppBarTheme(backgroundColor: Colors.black, elevation: 0),
+      ),
       initialRoute: '/splash',
       routes: appRoutes,
     );
   }
 }
-
