@@ -1,48 +1,28 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
-
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _authService = AuthService();
+  final _email = TextEditingController();
+  final _pass = TextEditingController();
+  final AuthService _auth = AuthService();
   bool _loading = false;
 
-  Future<void> _login() async {
+  Future<void> _onLogin() async {
     setState(() => _loading = true);
-
-    try {
-      final response = await _authService.login(
-        _emailController.text,
-        _passwordController.text,
-      );
-
-      if (response['success'] == true && response['token'] != null) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', response['token']);
-        if (!mounted) return;
-        Navigator.pushReplacementNamed(context, '/home');
-      } else {
-        _showError('Credenciales inválidas');
-      }
-    } catch (e) {
-      _showError('Error de conexión');
-    }
-
+    final resp = await _auth.login(_email.text.trim(), _pass.text);
     setState(() => _loading = false);
-  }
-
-  void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg)),
-    );
+    if (resp.containsKey('error')) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(resp['error'].toString())));
+      return;
+    }
+    // asumo success
+    Navigator.pushReplacementNamed(context, '/home');
   }
 
   @override
@@ -51,41 +31,35 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text('GSFilms', style: TextStyle(fontSize: 28, color: Colors.white)),
-              const SizedBox(height: 40),
-              TextField(
-                controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  labelStyle: TextStyle(color: Colors.white),
-                  prefixIcon: Icon(Icons.email, color: Colors.white70),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Image.asset('assets/images/splash.png', width: 150),
+                const SizedBox(height: 20),
+                const Text('Inicia sesión', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: _email,
+                  decoration: const InputDecoration(prefixIcon: Icon(Icons.email), labelText: 'Email'),
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                  labelStyle: TextStyle(color: Colors.white),
-                  prefixIcon: Icon(Icons.lock, color: Colors.white70),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _pass,
+                  obscureText: true,
+                  decoration: const InputDecoration(prefixIcon: Icon(Icons.lock), labelText: 'Contraseña'),
                 ),
-              ),
-              const SizedBox(height: 30),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFFD700),
-                  minimumSize: const Size(double.infinity, 50),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFFD700)),
+                    onPressed: _loading ? null : _onLogin,
+                    child: _loading ? const CircularProgressIndicator(color: Colors.black) : const Text('Entrar', style: TextStyle(color: Colors.black)),
+                  ),
                 ),
-                onPressed: _loading ? null : _login,
-                child: _loading
-                    ? const CircularProgressIndicator(color: Colors.black)
-                    : const Text('LOGIN', style: TextStyle(color: Colors.black)),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
