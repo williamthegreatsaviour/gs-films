@@ -57,6 +57,7 @@ class Movie {
       'pistas_audio': audioTracks,
       'rentada': isRented ? 1 : 0,
       'vistas': views,
+      'ad_tag_url': adTagUrl,
     };
   }
 }
