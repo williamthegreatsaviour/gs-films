@@ -11,16 +11,20 @@ class StorageService {
 
   static Future<void> saveUser(User user) async {
     try {
+      // Guarda el usuario completo (incluye token si lo tiene)
       await _secureStorage.write(
         key: _userKey,
         value: jsonEncode(user.toJson()),
       );
+      
+      // También guarda el token por separado (útil para interceptores HTTP)
       if (user.token != null) {
         await _secureStorage.write(key: _tokenKey, value: user.token!);
       }
+      
       await saveSession(true);
     } catch (e) {
-      print('Error saving user: \$e');
+      print('Error saving user: $e');
     }
   }
 
@@ -32,7 +36,7 @@ class StorageService {
         return User.fromJson(userData);
       }
     } catch (e) {
-      print('Error getting user: \$e');
+      print('Error getting user: $e');
     }
     return null;
   }
@@ -41,7 +45,7 @@ class StorageService {
     try {
       return await _secureStorage.read(key: _tokenKey);
     } catch (e) {
-      print('Error getting token: \$e');
+      print('Error getting token: $e');
       return null;
     }
   }
@@ -51,7 +55,7 @@ class StorageService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool(_sessionKey, hasSession);
     } catch (e) {
-      print('Error saving session: \$e');
+      print('Error saving session: $e');
     }
   }
 
@@ -60,7 +64,7 @@ class StorageService {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getBool(_sessionKey) ?? false;
     } catch (e) {
-      print('Error checking session: \$e');
+      print('Error checking session: $e');
       return false;
     }
   }
@@ -71,7 +75,7 @@ class StorageService {
       await _secureStorage.delete(key: _tokenKey);
       await saveSession(false);
     } catch (e) {
-      print('Error clearing session: \$e');
+      print('Error clearing session: $e');
     }
   }
 
@@ -81,7 +85,7 @@ class StorageService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
     } catch (e) {
-      print('Error clearing all data: \$e');
+      print('Error clearing all data: $e');
     }
   }
 }
