@@ -46,6 +46,18 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   }
 
   String _buildVideoPlayerHtml() {
+    // URL del video real
+    final videoUrl = widget.movie.videoUrl;
+
+    // Subtítulo (si existe)
+    final subtitleTrack = widget.movie.subtitleUrl != null
+        ? '<track kind="subtitles" src="${widget.movie.subtitleUrl}" srclang="es" label="Español" default>'
+        : '';
+
+    // Anuncio: usa adTagUrl personalizado o fallback a demo
+    final adTagUrl = widget.movie.adTagUrl ??
+        'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dskippablelinear&correlator=';
+
     return '''
     <!DOCTYPE html>
     <html>
@@ -53,7 +65,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>GSFilms Player</title>
+        <!-- Video.js CSS -->
         <link href="https://vjs.zencdn.net/8.5.2/video-js.css" rel="stylesheet">
+        <!-- Contrib Ads CSS -->
+        <link href="https://unpkg.com/videojs-contrib-ads@6.0.0/dist/videojs.ads.css" rel="stylesheet">
         <style>
             body {
                 margin: 0;
@@ -61,178 +76,72 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                 background-color: #000;
                 font-family: Arial, sans-serif;
             }
-            
-            .video-container {
-                width: 100%;
-                height: 100vh;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-            }
-            
-            .movie-info {
-                color: #FFD700;
-                text-align: center;
-                padding: 20px;
-                background: rgba(0, 0, 0, 0.8);
-                border-radius: 10px;
-                margin: 20px;
-            }
-            
-            .movie-title {
-                font-size: 24px;
-                font-weight: bold;
-                margin-bottom: 10px;
-            }
-            
-            .movie-details {
-                font-size: 16px;
-                color: #ccc;
-                margin-bottom: 20px;
-            }
-            
             .video-js {
                 width: 100% !important;
-                height: auto !important;
-                max-height: 70vh;
-            }
-            
-            .demo-notice {
-                background: rgba(255, 215, 0, 0.1);
-                border: 1px solid #FFD700;
-                color: #FFD700;
-                padding: 20px;
-                border-radius: 10px;
-                margin: 20px;
-                text-align: center;
-            }
-            
-            .play-button {
-                background: linear-gradient(135deg, #FFD700, #B8860B);
-                color: #000;
-                border: none;
-                padding: 15px 30px;
-                border-radius: 25px;
-                font-size: 18px;
-                font-weight: bold;
-                cursor: pointer;
-                margin: 20px;
-                box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
-                transition: all 0.3s ease;
-            }
-            
-            .play-button:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
-            }
-            
-            .feature-list {
-                color: #ccc;
-                text-align: left;
-                margin: 20px auto;
-                max-width: 400px;
-            }
-            
-            .feature-list li {
-                margin: 10px 0;
-                padding-left: 20px;
-                position: relative;
-            }
-            
-            .feature-list li:before {
-                content: "✓";
-                color: #FFD700;
-                font-weight: bold;
-                position: absolute;
-                left: 0;
+                height: 100vh !important;
             }
         </style>
     </head>
     <body>
-        <div class="video-container">
-            <div class="movie-info">
-                <div class="movie-title">\${widget.movie.title}</div>
-                <div class="movie-details">\${widget.movie.genre} • \${widget.movie.duration}</div>
-                
-                <div class="demo-notice">
-                    <h3>🎬 Reproductor GSFilms</h3>
-                    <p>Esta es una demostración del reproductor de video integrado con Video.js</p>
-                    
-                    <ul class="feature-list">
-                        <li>Soporte para subtítulos (.vtt)</li>
-                        <li>Múltiples pistas de audio</li>
-                        <li>Controles de reproducción avanzados</li>
-                        <li>Reproducción en pantalla completa</li>
-                        <li>Interfaz responsive</li>
-                    </ul>
-                </div>
-                
-                <button class="play-button" onclick="playDemo()">
-                    ▶ Reproducir Demo
-                </button>
-            </div>
-            
-            <video
-                id="demo-player"
-                class="video-js vjs-default-skin"
-                controls
-                preload="auto"
-                data-setup='{"fluid": true}'
-                style="display: none;">
-                <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
-                <track kind="captions" src="" srclang="es" label="Español" default>
-                <p class="vjs-no-js">
-                    Para ver este video, habilite JavaScript y considere actualizar a un
-                    <a href="https://videojs.com/html5-video-support/" target="_blank">navegador que soporte HTML5 video</a>.
-                </p>
-            </video>
-        </div>
+        <video
+            id="gsfilms-player"
+            class="video-js vjs-default-skin"
+            controls
+            preload="auto"
+            poster="${widget.movie.posterUrl}"
+            data-setup='{"fluid": true, "responsive": true}'>
+            <source src="$videoUrl" type="video/mp4">
+            $subtitleTrack
+            <p class="vjs-no-js">
+                Para ver este video, actualiza a un navegador que soporte HTML5.
+            </p>
+        </video>
 
+        <!-- Video.js -->
         <script src="https://vjs.zencdn.net/8.5.2/video.min.js"></script>
+        <!-- Plugins para anuncios -->
+        <script src="https://unpkg.com/videojs-contrib-ads@6.0.0/dist/videojs.ads.min.js"></script>
+        <script src="https://unpkg.com/videojs-ima@3.10.0/dist/videojs.ima.js"></script>
+        
         <script>
             let player;
             
-            function playDemo() {
-                const videoElement = document.getElementById('demo-player');
-                videoElement.style.display = 'block';
-                
-                player = videojs('demo-player', {
+            function initPlayer() {
+                player = videojs('gsfilms-player', {
                     controls: true,
                     fluid: true,
                     responsive: true,
-                    playbackRates: [0.5, 1, 1.25, 1.5, 2],
+                    playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2],
                     plugins: {
-                        // Aquí se pueden agregar plugins adicionales
+                        ima: {
+                            id: 'gsfilms-player',
+                            adTagUrl: '$adTagUrl'
+                        }
                     }
                 });
-                
+
                 player.ready(function() {
-                    console.log('Player is ready');
-                    player.play();
+                    console.log('GSFilms Player listo con anuncios');
+                    
+                    try {
+                        player.ima.initializeAdDisplayContainer();
+                        player.ima.setContentWithAdTag(player.currentSource(), '$adTagUrl');
+                        player.ima.requestAds();
+                    } catch (e) {
+                        console.warn('Error al cargar anuncios:', e);
+                    }
                 });
-                
-                // Manejar pantalla completa
-                player.on('fullscreenchange', function() {
-                    console.log('Fullscreen changed');
-                });
-                
-                // Manejar eventos de reproducción
-                player.on('play', function() {
-                    console.log('Video started playing');
-                });
-                
+
                 player.on('ended', function() {
-                    console.log('Video ended');
+                    console.log('Reproducción finalizada');
                 });
             }
-            
-            // Limpiar el reproductor al salir
-            window.addEventListener('beforeunload', function() {
-                if (player) {
-                    player.dispose();
-                }
-            });
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initPlayer);
+            } else {
+                initPlayer();
+            }
         </script>
     </body>
     </html>
