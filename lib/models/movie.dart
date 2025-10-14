@@ -10,6 +10,7 @@ class Movie {
   final List<String>? audioTracks;
   final bool isRented;
   final int views;
+  final String? adTagUrl;
 
   Movie({
     required this.id,
