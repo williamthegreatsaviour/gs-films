@@ -9,7 +9,7 @@ class ApiService {
   static Future<User?> login(String username, String password) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/auth/login'),
+        Uri.parse('$baseUrl/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': username, // o 'username', ajusta según tu backend
