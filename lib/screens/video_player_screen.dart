@@ -46,15 +46,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   }
 
   String _buildVideoPlayerHtml() {
-    // URL del video real
     final videoUrl = widget.movie.videoUrl;
-
-    // Subtítulo (si existe)
     final subtitleTrack = widget.movie.subtitleUrl != null
         ? '<track kind="subtitles" src="${widget.movie.subtitleUrl}" srclang="es" label="Español" default>'
         : '';
 
-    // Anuncio: usa adTagUrl personalizado o fallback a demo
     final adTagUrl = widget.movie.adTagUrl ??
         'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dskippablelinear&correlator=';
 
@@ -65,9 +61,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>GSFilms Player</title>
-        <!-- Video.js CSS -->
         <link href="https://vjs.zencdn.net/8.5.2/video-js.css" rel="stylesheet">
-        <!-- Contrib Ads CSS -->
         <link href="https://unpkg.com/videojs-contrib-ads@6.0.0/dist/videojs.ads.css" rel="stylesheet">
         <style>
             body {
@@ -97,15 +91,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             </p>
         </video>
 
-        <!-- Video.js -->
         <script src="https://vjs.zencdn.net/8.5.2/video.min.js"></script>
-        <!-- Plugins para anuncios -->
         <script src="https://unpkg.com/videojs-contrib-ads@6.0.0/dist/videojs.ads.min.js"></script>
         <script src="https://unpkg.com/videojs-ima@3.10.0/dist/videojs.ima.js"></script>
         
         <script>
             let player;
-            
             function initPlayer() {
                 player = videojs('gsfilms-player', {
                     controls: true,
@@ -121,8 +112,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                 });
 
                 player.ready(function() {
-                    console.log('GSFilms Player listo con anuncios');
-                    
                     try {
                         player.ima.initializeAdDisplayContainer();
                         player.ima.setContentWithAdTag(player.currentSource(), '$adTagUrl');
