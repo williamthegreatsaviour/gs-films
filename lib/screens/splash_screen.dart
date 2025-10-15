@@ -46,6 +46,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     
     if (!mounted) return;
     
+    // NOTA: Reemplaza AuthProvider por el provider real si tiene un nombre diferente
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     await authProvider.initialize();
     
@@ -104,26 +105,33 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                           width: 150,
                           height: 150,
                           fit: BoxFit.cover,
+                          onError: (exception, stackTrace) {
+                             // Esto ayuda a manejar errores en la consola si la imagen falla
+                             return Container(); 
+                          },
                           errorBuilder: (context, error, stackTrace) {
-                            // Fallback to gradient background with icon if image fails to load
-                            return Container(
-                              width: 150,
-                              height: 150,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    GSFilmsColors.neonGold,
-                                    GSFilmsColors.darkGold,
-                                  ],
-                                ),
-                              ),
-                              child: const Icon(
-                                Icons.movie,
-                                size: 80,
-                                color: GSFilmsColors.black,
+                            // **LÓGICA DE RESERVA MODIFICADA**
+                            // Muestra la imagen adjunta 'splash.png' usando Image.asset
+                            return ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: Image.asset(
+                                // **Ruta Asumida:** Debes asegurarte de que 'splash.png' está en esta ruta.
+                                'assets/images/splash.png', 
+                                width: 150,
+                                height: 150,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  // Si la imagen de asset falla, muestra un fallback simple.
+                                  return Container(
+                                    color: GSFilmsColors.darkGold,
+                                    child: const Center(
+                                      child: Text(
+                                        'GS', 
+                                        style: TextStyle(color: GSFilmsColors.black, fontSize: 60)
+                                      ),
+                                    ),
+                                  );
+                                }
                               ),
                             );
                           },
@@ -135,18 +143,18 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     Text(
                       'GSFilms',
                       style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                        color: GSFilmsColors.neonGold,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 2,
-                      ),
+                            color: GSFilmsColors.neonGold,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 2,
+                          ),
                     ),
                     const SizedBox(height: 10),
                     Text(
                       'Tu portal al cine',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: GSFilmsColors.lightGray,
-                        letterSpacing: 1,
-                      ),
+                            color: GSFilmsColors.lightGray,
+                            letterSpacing: 1,
+                          ),
                     ),
                     const SizedBox(height: 50),
                     // Loading indicator
