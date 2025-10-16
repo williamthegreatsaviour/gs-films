@@ -49,6 +49,16 @@
 			<key>isShown</key>
 			<false/>
 		</dict>
+		<key>sqflite_darwin-sqflite_darwin_privacy.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+		</dict>
+		<key>sqflite_darwin.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+		</dict>
 		<key>webview_flutter_wkwebview-webview_flutter_wkwebview_privacy.xcscheme</key>
 		<dict>
 			<key>isShown</key>

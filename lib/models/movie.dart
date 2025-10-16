@@ -12,19 +12,19 @@ class Movie {
   final int views;
   final String? adTagUrl;
 
-  Movie({
-    required this.id,
-    required this.title,
-    required this.genre,
-    required this.duration,
-    required this.synopsis,
-    required this.posterUrl,
-    required this.videoUrl,
-    this.subtitleUrl,
-    this.audioTracks,
-    this.isRented = false,
-    this.views = 0,
-  });
+  Movie(
+      {required this.id,
+      required this.title,
+      required this.genre,
+      required this.duration,
+      required this.synopsis,
+      required this.posterUrl,
+      required this.videoUrl,
+      this.subtitleUrl,
+      this.audioTracks,
+      this.isRented = false,
+      this.views = 0,
+      this.adTagUrl});
 
   factory Movie.fromJson(Map<String, dynamic> json) {
     return Movie(
@@ -36,7 +36,7 @@ class Movie {
       posterUrl: json['caratula'] ?? json['poster_url'] ?? '',
       videoUrl: json['video_url'] ?? '',
       subtitleUrl: json['subtitulo_url'],
-      audioTracks: json['pistas_audio'] != null 
+      audioTracks: json['pistas_audio'] != null
           ? List<String>.from(json['pistas_audio'])
           : null,
       isRented: json['rentada'] == 1 || json['is_rented'] == true,
