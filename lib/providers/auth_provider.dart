@@ -1,7 +1,9 @@
-import 'package:flutter/foundation.dart';
+import 'dart:developer';
+
 import 'package:cinepulso/models/user.dart';
 import 'package:cinepulso/services/api_service.dart';
 import 'package:cinepulso/services/storage_service.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthProvider with ChangeNotifier {
   User? _user;
@@ -48,6 +50,11 @@ class AuthProvider with ChangeNotifier {
         return true;
       } else {
         _error = 'Credenciales incorrectas';
+        log(
+          'Login fallido: credenciales incorrectas para usuario "$username"',
+          name: 'AuthProvider',
+          level: 900, // Level.WARNING
+        );
       }
     } catch (e) {
       _error = 'Error de conexión';
