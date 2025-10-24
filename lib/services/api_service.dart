@@ -53,10 +53,7 @@ class ApiService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      final movies = (data['movies'] as List)
-          .map((json) => Movie.fromJson(json))
-          .toList();
-      return movies;
+      return (data['movies'] as List).map((json) => Movie.fromJson(json)).toList();
     } else {
       throw ApiException('No se pudieron cargar las películas');
     }
@@ -110,7 +107,39 @@ class ApiService {
       final data = jsonDecode(response.body);
       return data['ad_tag_url'] as String?;
     } else {
-      return null; // Por defecto se puede usar un adTagUrl general en el reproductor
+      return null;
     }
+  }
+
+  /// Guardar progreso de reproducción
+  static Future<void> saveProgress(String movieId, double seconds) async {
+    final url = Uri.parse('$baseUrl/movies/$movieId/progress');
+    final token = await StorageService.getToken();
+
+    await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'time': seconds}),
+    );
+  }
+
+  /// Obtener progreso de reproducción
+  static Future<double?> getProgress(String movieId) async {
+    final url = Uri.parse('$baseUrl/movies/$movieId/progress');
+    final token = await StorageService.getToken();
+
+    final response = await http.get(
+      url,
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return (data['time'] as num?)?.toDouble();
+    }
+    return null;
   }
 }
