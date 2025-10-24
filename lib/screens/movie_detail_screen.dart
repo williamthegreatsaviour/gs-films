@@ -15,14 +15,22 @@ class MovieDetailScreen extends StatefulWidget {
 }
 
 class _MovieDetailScreenState extends State<MovieDetailScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   bool _isLiking = false;
   bool _isUpdatingWatchlist = false;
   bool _isLoadingData = true;
 
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
+  late AnimationController _posterController;
+  late Animation<double> _posterFade;
+  late Animation<double> _posterScale;
+
+  late AnimationController _playButtonController;
+  late Animation<double> _playScale;
+  late Animation<double> _playGlow;
+
+  late AnimationController _iconsController;
+  late Animation<double> _iconsFade;
+  late Animation<double> _iconsScale;
 
   @override
   void initState() {
@@ -32,27 +40,48 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
   }
 
   void _setupAnimations() {
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+    // Poster animación
+    _posterController = AnimationController(
       vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _posterFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _posterController, curve: Curves.easeIn),
+    );
+    _posterScale = Tween<double>(begin: 0.95, end: 1.0).animate(
+      CurvedAnimation(parent: _posterController, curve: Curves.easeOut),
     );
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+    // Play button animación
+    _playButtonController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _playScale = Tween<double>(begin: 0.7, end: 1.0).animate(
+      CurvedAnimation(parent: _playButtonController, curve: Curves.elasticOut),
+    );
+    _playGlow = Tween<double>(begin: 0.0, end: 0.9).animate(
+      CurvedAnimation(parent: _playButtonController, curve: Curves.easeOut),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
+    // Icons animación
+    _iconsController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _iconsFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _iconsController, curve: Curves.easeIn),
+    );
+    _iconsScale = Tween<double>(begin: 0.7, end: 1.0).animate(
+      CurvedAnimation(parent: _iconsController, curve: Curves.easeOutBack),
     );
   }
 
   Future<void> _loadMovieData() async {
     final movieProvider = Provider.of<MovieProvider>(context, listen: false);
     try {
-      // Simula la carga de información adicional si es necesario
       await movieProvider.fetchMovieDetails(widget.movie.id);
     } catch (e) {
-      // Manejo de error seguro
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Error al cargar detalles de la película')),
       );
@@ -61,13 +90,18 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
       setState(() {
         _isLoadingData = false;
       });
-      _animationController.forward();
+      _posterController.forward().whenComplete(() {
+        _iconsController.forward();
+        _playButtonController.forward();
+      });
     }
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _posterController.dispose();
+    _playButtonController.dispose();
+    _iconsController.dispose();
     super.dispose();
   }
 
@@ -78,46 +112,10 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
     return Scaffold(
       backgroundColor: GSFilmsColors.black,
       body: _isLoadingData
-          ? Center(
-              child: AnimatedBuilder(
-                animation: _animationController,
-                builder: (context, child) {
-                  return FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: ScaleTransition(
-                      scale: _scaleAnimation,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 120,
-                            height: 120,
-                            decoration: BoxDecoration(
-                              color: GSFilmsColors.neonGold,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Icon(
-                              Icons.movie,
-                              color: GSFilmsColors.black,
-                              size: 60,
-                            ),
-                          ),
-                          const SizedBox(height: 30),
-                          SizedBox(
-                            width: 40,
-                            height: 40,
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                GSFilmsColors.neonGold,
-                              ),
-                              strokeWidth: 3,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+          ? const Center(
+              child: CircularProgressIndicator(
+                color: GSFilmsColors.neonGold,
+                strokeWidth: 3,
               ),
             )
           : _buildMovieDetail(context, movie),
@@ -137,25 +135,12 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
           flexibleSpace: FlexibleSpaceBar(
             background: Stack(
               children: [
-                // Poster con manejo de error
-                Container(
-                  width: double.infinity,
-                  height: double.infinity,
-                  child: ClipRRect(
-                    child: Image.network(
-                      movie.posterUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        color: GSFilmsColors.charcoal,
-                        child: const Center(
-                          child: Icon(
-                            Icons.movie,
-                            color: GSFilmsColors.mediumGray,
-                            size: 60,
-                          ),
-                        ),
-                      ),
-                    ),
+                // Poster con animación
+                FadeTransition(
+                  opacity: _posterFade,
+                  child: ScaleTransition(
+                    scale: _posterScale,
+                    child: _AnimatedPoster(url: movie.posterUrl),
                   ),
                 ),
                 Container(
@@ -174,99 +159,97 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                 Positioned(
                   top: 16,
                   right: 16,
-                  child: Column(
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          movie.isLiked ? Icons.favorite : Icons.favorite_border,
-                          color: GSFilmsColors.red,
-                          size: 28,
-                        ),
-                        onPressed: _isLiking
-                            ? null
-                            : () async {
-                                setState(() => _isLiking = true);
-                                try {
-                                  final updatedMovie =
-                                      await movieProvider.toggleLike(movie.id);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(updatedMovie.isLiked
-                                          ? 'Añadido a favoritos'
-                                          : 'Quitado de favoritos'),
-                                    ),
-                                  );
-                                } catch (_) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content:
-                                          Text('Error al actualizar favoritos'),
-                                    ),
-                                  );
-                                } finally {
-                                  setState(() => _isLiking = false);
-                                }
-                              },
+                  child: FadeTransition(
+                    opacity: _iconsFade,
+                    child: ScaleTransition(
+                      scale: _iconsScale,
+                      child: Column(
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              movie.isLiked
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: GSFilmsColors.red,
+                              size: 28,
+                            ),
+                            onPressed: _isLiking
+                                ? null
+                                : () async {
+                                    setState(() => _isLiking = true);
+                                    try {
+                                      final updatedMovie = await movieProvider
+                                          .toggleLike(movie.id);
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(updatedMovie.isLiked
+                                              ? 'Añadido a favoritos'
+                                              : 'Quitado de favoritos'),
+                                        ),
+                                      );
+                                    } finally {
+                                      setState(() => _isLiking = false);
+                                    }
+                                  },
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              movie.inWatchlist
+                                  ? Icons.bookmark
+                                  : Icons.bookmark_border,
+                              color: GSFilmsColors.neonGold,
+                              size: 28,
+                            ),
+                            onPressed: _isUpdatingWatchlist
+                                ? null
+                                : () async {
+                                    setState(() => _isUpdatingWatchlist = true);
+                                    try {
+                                      final updatedMovie = await movieProvider
+                                          .toggleWatchlist(movie.id);
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(updatedMovie.inWatchlist
+                                              ? 'Añadido a Mi Lista'
+                                              : 'Quitado de Mi Lista'),
+                                        ),
+                                      );
+                                    } finally {
+                                      setState(() => _isUpdatingWatchlist = false);
+                                    }
+                                  },
+                          ),
+                        ],
                       ),
-                      IconButton(
-                        icon: Icon(
-                          movie.inWatchlist
-                              ? Icons.bookmark
-                              : Icons.bookmark_border,
-                          color: GSFilmsColors.neonGold,
-                          size: 28,
-                        ),
-                        onPressed: _isUpdatingWatchlist
-                            ? null
-                            : () async {
-                                setState(() => _isUpdatingWatchlist = true);
-                                try {
-                                  final updatedMovie =
-                                      await movieProvider.toggleWatchlist(movie.id);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(updatedMovie.inWatchlist
-                                          ? 'Añadido a Mi Lista'
-                                          : 'Quitado de Mi Lista'),
-                                    ),
-                                  );
-                                } catch (_) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content:
-                                          Text('Error al actualizar Mi Lista'),
-                                    ),
-                                  );
-                                } finally {
-                                  setState(() => _isUpdatingWatchlist = false);
-                                }
-                              },
-                      ),
-                    ],
+                    ),
                   ),
                 ),
+                // Botón Play animado tipo HUD
                 Positioned.fill(
                   child: Center(
-                    child: GestureDetector(
-                      onTap: () => _playMovie(context),
+                    child: ScaleTransition(
+                      scale: _playScale,
                       child: Container(
                         width: 80,
                         height: 80,
                         decoration: BoxDecoration(
-                          color: GSFilmsColors.neonGold.withValues(alpha: 0.9),
+                          color: GSFilmsColors.neonGold.withOpacity(_playGlow.value),
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: GSFilmsColors.neonGold.withValues(alpha: 0.5),
+                              color:
+                                  GSFilmsColors.neonGold.withOpacity(_playGlow.value / 2),
                               blurRadius: 20,
                               spreadRadius: 2,
                             ),
                           ],
                         ),
-                        child: const Icon(
-                          Icons.play_arrow,
-                          color: GSFilmsColors.black,
-                          size: 40,
+                        child: IconButton(
+                          icon: const Icon(Icons.play_arrow,
+                              color: GSFilmsColors.black, size: 40),
+                          onPressed: () => _playMovie(context),
                         ),
                       ),
                     ),
@@ -276,7 +259,6 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
             ),
           ),
         ),
-        // Resto del detalle
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.all(20.0),
@@ -294,8 +276,8 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
                 Row(
                   children: [
                     Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: GSFilmsColors.neonGold.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(20),
@@ -393,5 +375,42 @@ class _MovieDetailScreenState extends State<MovieDetailScreen>
     } else {
       return views.toString();
     }
+  }
+}
+
+class _AnimatedPoster extends StatelessWidget {
+  final String url;
+  const _AnimatedPoster({required this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: Image.network(
+        url,
+        width: double.infinity,
+        height: double.infinity,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, progress) {
+          if (progress == null) return child;
+          return Container(
+            color: GSFilmsColors.charcoal,
+            child: const Center(
+              child: CircularProgressIndicator(
+                color: GSFilmsColors.neonGold,
+              ),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            color: GSFilmsColors.charcoal,
+            child: const Center(
+              child: Icon(Icons.movie, color: GSFilmsColors.mediumGray, size: 40),
+            ),
+          );
+        },
+      ),
+    );
   }
 }
