@@ -1,8 +1,8 @@
 import 'dart:developer';
+import 'package:flutter/foundation.dart';
 import 'package:cinepulso/models/user.dart';
 import 'package:cinepulso/services/api_service.dart';
 import 'package:cinepulso/services/storage_service.dart';
-import 'package:flutter/foundation.dart';
 
 class AuthProvider with ChangeNotifier {
   User? _user;
@@ -15,10 +15,10 @@ class AuthProvider with ChangeNotifier {
   bool get isLoggedIn => _isLoggedIn;
   String? get error => _error;
 
-  // Inicializar sesión segura
   Future<void> initialize() async {
     _isLoading = true;
     notifyListeners();
+
     try {
       final hasSession = await StorageService.hasSession();
       if (hasSession) {
@@ -26,14 +26,13 @@ class AuthProvider with ChangeNotifier {
         _isLoggedIn = _user != null;
       }
     } catch (e) {
-      log('Error initializing auth: $e', level: 900);
+      log('Error initializing auth: $e', name: 'AuthProvider');
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  // Login seguro
   Future<bool> login(String username, String password) async {
     _isLoading = true;
     _error = null;
@@ -44,19 +43,22 @@ class AuthProvider with ChangeNotifier {
       if (user != null) {
         _user = user;
         _isLoggedIn = true;
-        await StorageService.saveUser(user); // Guardado seguro
+        await StorageService.saveUser(user);
+        _isLoading = false;
+        notifyListeners();
         return true;
       } else {
         _error = 'Credenciales incorrectas';
-        log('Login fallido para usuario "$username"', level: 900);
+        log('Login fallido: credenciales incorrectas para usuario "$username"',
+            name: 'AuthProvider', level: 900);
       }
     } catch (e) {
       _error = 'Error de conexión';
-      log('Login error: $e', level: 1000);
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+      log('Login error: $e', name: 'AuthProvider');
     }
+
+    _isLoading = false;
+    notifyListeners();
     return false;
   }
 
