@@ -1,5 +1,4 @@
 import 'dart:developer';
-
 import 'package:cinepulso/models/user.dart';
 import 'package:cinepulso/services/api_service.dart';
 import 'package:cinepulso/services/storage_service.dart';
@@ -16,56 +15,56 @@ class AuthProvider with ChangeNotifier {
   bool get isLoggedIn => _isLoggedIn;
   String? get error => _error;
 
+  /// Inicializa la sesión si hay un usuario guardado
   Future<void> initialize() async {
-    _isLoading = true;
-    notifyListeners();
-
+    _setLoading(true);
     try {
       final hasSession = await StorageService.hasSession();
       if (hasSession) {
         _user = await StorageService.getUser();
         _isLoggedIn = _user != null;
       }
-    } catch (e) {
-      print('Error initializing auth: \$e');
+    } catch (e, st) {
+      log('Error initializing auth: $e', stackTrace: st);
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      _setLoading(false);
     }
   }
 
+  /// Login con backend
   Future<bool> login(String username, String password) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
+    _setLoading(true);
+    _setError(null);
 
     try {
       final user = await ApiService.login(username, password);
+
       if (user != null) {
+        // Login exitoso
         _user = user;
         _isLoggedIn = true;
-        await StorageService.saveUser(user);
-        _isLoading = false;
-        notifyListeners();
+        await StorageService.saveUser(user); // persistencia segura
+        _setLoading(false);
         return true;
       } else {
-        _error = 'Credenciales incorrectas';
-        log(
-          'Login fallido: credenciales incorrectas para usuario "$username"',
-          name: 'AuthProvider',
-          level: 900, // Level.WARNING
-        );
+        // Login fallido (credenciales incorrectas)
+        _setError('Usuario o contraseña incorrectos');
       }
-    } catch (e) {
-      _error = 'Error de conexión';
-      print('Login error: \$e');
+    } on ApiException catch (e) {
+      // Error específico del backend
+      _setError(e.message);
+      log('ApiException login: ${e.message}');
+    } catch (e, st) {
+      // Error de conexión u otros errores
+      _setError('Error de conexión. Intenta nuevamente.');
+      log('Login error: $e', stackTrace: st);
     }
 
-    _isLoading = false;
-    notifyListeners();
+    _setLoading(false);
     return false;
   }
 
+  /// Logout y limpieza de sesión
   Future<void> logout() async {
     _user = null;
     _isLoggedIn = false;
@@ -73,8 +72,20 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void clearError() {
-    _error = null;
+  /// Limpia errores visibles en UI
+  void clearError() => _setError(null);
+
+  /// -----------------------
+  /// Métodos internos
+  /// -----------------------
+
+  void _setLoading(bool value) {
+    _isLoading = value;
+    notifyListeners();
+  }
+
+  void _setError(String? message) {
+    _error = message;
     notifyListeners();
   }
 }
