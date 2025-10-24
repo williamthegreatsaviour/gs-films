@@ -4,7 +4,7 @@ import 'package:cinepulso/models/movie.dart';
 import 'package:cinepulso/models/user.dart';
 
 class ApiService {
-  static const String baseUrl = 'https://gsfilms.com.mx/gsfilms/api';
+  static const String baseUrl = 'https://gsfilms.com.mx/api';
 
   // LOGIN
   static Future<User?> login(String username, String password) async {
