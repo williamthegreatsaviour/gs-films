@@ -1,11 +1,9 @@
-import 'package:cinepulso/providers/auth_provider.dart';
-import 'package:cinepulso/screens/movie_detail_screen.dart';
-import 'package:cinepulso/widgets/movie_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/movie.dart';
-import '../services/api_service.dart';
-import '../theme.dart';
+import 'package:cinepulso/models/movie.dart';
+import 'package:cinepulso/providers/movie_provider.dart';
+import 'package:cinepulso/screens/movie_detail_screen.dart';
+import 'package:cinepulso/theme.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,74 +12,145 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  List<Movie> _movies = [];
-  bool _isLoading = true;
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+  late AnimationController _listController;
+  late Animation<double> _listFade;
+  late Animation<double> _listScale;
 
   @override
   void initState() {
     super.initState();
-    _fetchMovies();
+    _setupAnimations();
   }
 
-  Future<void> _fetchMovies() async {
-    try {
-      final movies = await ApiService.getTopMovies(); // Top 10
-      setState(() {
-        _movies = movies;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error cargando películas')),
-      );
-    }
+  void _setupAnimations() {
+    _listController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+
+    _listFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _listController, curve: Curves.easeIn),
+    );
+
+    _listScale = Tween<double>(begin: 0.95, end: 1.0).animate(
+      CurvedAnimation(parent: _listController, curve: Curves.easeOut),
+    );
+
+    _listController.forward();
+  }
+
+  @override
+  void dispose() {
+    _listController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final movieProvider = Provider.of<MovieProvider>(context);
 
     return Scaffold(
       backgroundColor: GSFilmsColors.black,
       appBar: AppBar(
         title: const Text('GSFilms'),
-        backgroundColor: GSFilmsColors.black,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await authProvider.logout();
-              Navigator.of(context).pushReplacementNamed('/login');
-            },
-          )
-        ],
+        backgroundColor: GSFilmsColors.richBlack,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : GridView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _movies.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                childAspectRatio: 0.65,
+      body: movieProvider.isLoading
+          ? const Center(
+              child: CircularProgressIndicator(
+                color: GSFilmsColors.neonGold,
               ),
-              itemBuilder: (context, index) {
-                final movie = _movies[index];
-                return MovieCard(
-                  movie: movie,
-                  showRank: true,
-                  rank: index + 1,
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => MovieDetailScreen(movie: movie),
+            )
+          : Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.65,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                ),
+                itemCount: movieProvider.movies.length,
+                itemBuilder: (context, index) {
+                  final movie = movieProvider.movies[index];
+                  return FadeTransition(
+                    opacity: _listFade,
+                    child: ScaleTransition(
+                      scale: _listScale,
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => MovieDetailScreen(movie: movie),
+                            ),
+                          );
+                        },
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Image.network(
+                                movie.posterUrl,
+                                fit: BoxFit.cover,
+                                loadingBuilder: (context, child, progress) {
+                                  if (progress == null) return child;
+                                  return Container(
+                                    color: GSFilmsColors.charcoal,
+                                    child: const Center(
+                                      child: CircularProgressIndicator(
+                                        color: GSFilmsColors.neonGold,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    color: GSFilmsColors.charcoal,
+                                    child: const Center(
+                                      child: Icon(Icons.movie,
+                                          color: GSFilmsColors.mediumGray,
+                                          size: 40),
+                                    ),
+                                  );
+                                },
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                child: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        GSFilmsColors.black.withOpacity(0.0),
+                                        GSFilmsColors.black.withOpacity(0.7),
+                                      ],
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    movie.title,
+                                    style: const TextStyle(
+                                      color: GSFilmsColors.neonGold,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
     );
   }
