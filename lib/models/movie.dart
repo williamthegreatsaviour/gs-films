@@ -10,21 +10,22 @@ class Movie {
   final List<String>? audioTracks;
   final bool isRented;
   final int views;
-  final String? adTagUrl;
+  final String? adTagUrl; // ya existe
 
-  Movie(
-      {required this.id,
-      required this.title,
-      required this.genre,
-      required this.duration,
-      required this.synopsis,
-      required this.posterUrl,
-      required this.videoUrl,
-      this.subtitleUrl,
-      this.audioTracks,
-      this.isRented = false,
-      this.views = 0,
-      this.adTagUrl});
+  Movie({
+    required this.id,
+    required this.title,
+    required this.genre,
+    required this.duration,
+    required this.synopsis,
+    required this.posterUrl,
+    required this.videoUrl,
+    this.subtitleUrl,
+    this.audioTracks,
+    this.isRented = false,
+    this.views = 0,
+    this.adTagUrl,
+  });
 
   factory Movie.fromJson(Map<String, dynamic> json) {
     return Movie(
@@ -41,6 +42,7 @@ class Movie {
           : null,
       isRented: json['rentada'] == 1 || json['is_rented'] == true,
       views: json['vistas'] ?? json['views'] ?? 0,
+      adTagUrl: json['ad_tag_url'], // <-- asignamos aquí
     );
   }
 
@@ -57,7 +59,7 @@ class Movie {
       'pistas_audio': audioTracks,
       'rentada': isRented ? 1 : 0,
       'vistas': views,
-      'ad_tag_url': adTagUrl,
+      'ad_tag_url': adTagUrl, // <-- y aquí
     };
   }
 }
