@@ -34,8 +34,9 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (success && mounted) {
+        // Navega a HomeScreen
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
       }
     }
@@ -47,11 +48,11 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: GSFilmsColors.black,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
             children: [
-              const SizedBox(height: 60),
-              // Logo
+              const SizedBox(height: 80),
+              // Logo con gradiente
               Container(
                 width: 120,
                 height: 120,
@@ -72,7 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   color: GSFilmsColors.black,
                 ),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 24),
               Text(
                 'GSFilms',
                 style: Theme.of(context).textTheme.displaySmall?.copyWith(
@@ -82,42 +83,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
               ),
               const SizedBox(height: 50),
-              // Login Form
               Form(
                 key: _formKey,
                 child: Column(
                   children: [
-                    // Username Field
+                    // Usuario
                     TextFormField(
                       controller: _usernameController,
-                      decoration: InputDecoration(
-                        labelText: 'Usuario',
-                        labelStyle:
-                            const TextStyle(color: GSFilmsColors.lightGray),
-                        prefixIcon: const Icon(Icons.person,
-                            color: GSFilmsColors.neonGold),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide:
-                              const BorderSide(color: GSFilmsColors.mediumGray),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide:
-                              const BorderSide(color: GSFilmsColors.neonGold),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide:
-                              const BorderSide(color: GSFilmsColors.error),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide:
-                              const BorderSide(color: GSFilmsColors.error),
-                        ),
-                        filled: true,
-                        fillColor: GSFilmsColors.charcoal,
+                      decoration: _inputDecoration(
+                        label: 'Usuario',
+                        icon: Icons.person,
                       ),
                       style: const TextStyle(color: GSFilmsColors.white),
                       validator: (value) {
@@ -128,51 +103,20 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
                     const SizedBox(height: 20),
-                    // Password Field
+                    // Contraseña
                     TextFormField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
-                      decoration: InputDecoration(
-                        labelText: 'Contraseña',
-                        labelStyle:
-                            const TextStyle(color: GSFilmsColors.lightGray),
-                        prefixIcon: const Icon(Icons.lock,
-                            color: GSFilmsColors.neonGold),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility
-                                : Icons.visibility_off,
-                            color: GSFilmsColors.lightGray,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide:
-                              const BorderSide(color: GSFilmsColors.mediumGray),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide:
-                              const BorderSide(color: GSFilmsColors.neonGold),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide:
-                              const BorderSide(color: GSFilmsColors.error),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide:
-                              const BorderSide(color: GSFilmsColors.error),
-                        ),
-                        filled: true,
-                        fillColor: GSFilmsColors.charcoal,
+                      decoration: _inputDecoration(
+                        label: 'Contraseña',
+                        icon: Icons.lock,
+                        isPassword: true,
+                        togglePassword: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
+                        obscurePassword: _obscurePassword,
                       ),
                       style: const TextStyle(color: GSFilmsColors.white),
                       validator: (value) {
@@ -183,32 +127,32 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
                     const SizedBox(height: 30),
-                    // Login Button
+                    // Error mensaje
                     Consumer<AuthProvider>(
-                      builder: (context, authProvider, child) {
+                      builder: (context, authProvider, _) {
                         if (authProvider.error != null) {
                           return Column(
                             children: [
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: GSFilmsColors.error
-                                      .withValues(alpha: 0.1),
+                                  color: GSFilmsColors.error.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(8),
-                                  border:
-                                      Border.all(color: GSFilmsColors.error),
+                                  border: Border.all(color: GSFilmsColors.error),
                                 ),
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.error,
-                                        color: GSFilmsColors.error),
+                                    const Icon(Icons.error, color: GSFilmsColors.error),
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
                                         authProvider.error!,
-                                        style: const TextStyle(
-                                            color: GSFilmsColors.error),
+                                        style: const TextStyle(color: GSFilmsColors.error),
                                       ),
+                                    ),
+                                    IconButton(
+                                      onPressed: authProvider.clearError,
+                                      icon: const Icon(Icons.close, color: GSFilmsColors.error),
                                     ),
                                   ],
                                 ),
@@ -220,11 +164,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         return const SizedBox.shrink();
                       },
                     ),
+                    // Botón Iniciar Sesión
                     SizedBox(
                       width: double.infinity,
                       height: 56,
                       child: Consumer<AuthProvider>(
-                        builder: (context, authProvider, child) {
+                        builder: (context, authProvider, _) {
                           return ElevatedButton(
                             onPressed: authProvider.isLoading ? null : _login,
                             style: ElevatedButton.styleFrom(
@@ -240,9 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     width: 24,
                                     height: 24,
                                     child: CircularProgressIndicator(
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        GSFilmsColors.white,
-                                      ),
+                                      valueColor: AlwaysStoppedAnimation(GSFilmsColors.black),
                                       strokeWidth: 2,
                                     ),
                                   )
@@ -263,10 +206,52 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
               ),
+              const SizedBox(height: 40),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  InputDecoration _inputDecoration({
+    required String label,
+    required IconData icon,
+    bool isPassword = false,
+    VoidCallback? togglePassword,
+    bool obscurePassword = true,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: GSFilmsColors.lightGray),
+      prefixIcon: Icon(icon, color: GSFilmsColors.neonGold),
+      suffixIcon: isPassword
+          ? IconButton(
+              icon: Icon(
+                obscurePassword ? Icons.visibility : Icons.visibility_off,
+                color: GSFilmsColors.lightGray,
+              ),
+              onPressed: togglePassword,
+            )
+          : null,
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: GSFilmsColors.mediumGray),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: GSFilmsColors.neonGold),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: GSFilmsColors.error),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: GSFilmsColors.error),
+      ),
+      filled: true,
+      fillColor: GSFilmsColors.charcoal,
     );
   }
 }
