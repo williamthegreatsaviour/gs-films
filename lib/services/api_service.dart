@@ -41,7 +41,7 @@ class ApiService {
     }
   }
 
-  /// LISTADO DE PELÍCULAS
+  /// Obtener lista de películas por género
   static Future<List<Movie>> getMovies() async {
     final url = Uri.parse('$baseUrl/movies');
     final token = await StorageService.getToken();
@@ -53,18 +53,64 @@ class ApiService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      final movies = (data['movies'] as List)
-          .map((json) => Movie.fromJson(json))
-          .toList();
-      return movies;
+      final genres = data['genres'] as List;
+      final List<Movie> allMovies = [];
+      for (var genre in genres) {
+        allMovies.addAll(
+          (genre['movies'] as List).map((json) => Movie.fromJson(json)).toList(),
+        );
+      }
+      return allMovies;
     } else {
       throw ApiException('No se pudieron cargar las películas');
     }
   }
 
-  /// TOP 10 PELÍCULAS (más vistas o likes)
+  /// Películas rentadas por el usuario
+  static Future<List<Movie>> getRentedMovies(String userId) async {
+    final url = Uri.parse('$baseUrl/movies/rented?user_id=$userId');
+    final token = await StorageService.getToken();
+
+    final response = await http.get(
+      url,
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final movies = (data['movies'] as List)
+          .map((json) => Movie.fromJson(json))
+          .toList();
+      return movies;
+    } else {
+      throw ApiException('No se pudieron cargar las películas rentadas');
+    }
+  }
+
+  /// Buscar películas
+  static Future<List<Movie>> searchMovies(String query) async {
+    final url = Uri.parse('$baseUrl/movies/search?q=$query');
+    final token = await StorageService.getToken();
+
+    final response = await http.get(
+      url,
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final movies = (data['movies'] as List)
+          .map((json) => Movie.fromJson(json))
+          .toList();
+      return movies;
+    } else {
+      throw ApiException('No se pudieron buscar las películas');
+    }
+  }
+
+  /// Top 10 películas
   static Future<List<Movie>> getTopMovies() async {
-    final url = Uri.parse('$baseUrl/movies/top10');
+    final url = Uri.parse('$baseUrl/top-movies');
     final token = await StorageService.getToken();
 
     final response = await http.get(
@@ -74,55 +120,16 @@ class ApiService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      final movies = (data['movies'] as List)
+      final movies = (data['data'] as List)
           .map((json) => Movie.fromJson(json))
           .toList();
       return movies;
     } else {
-      throw ApiException('No se pudieron cargar las películas top 10');
+      throw ApiException('No se pudieron cargar las top películas');
     }
   }
 
-  /// PELÍCULAS POR GÉNERO
-  static Future<List<Movie>> getMoviesByGenre(String genreId) async {
-    final url = Uri.parse('$baseUrl/genres/$genreId/movies');
-    final token = await StorageService.getToken();
-
-    final response = await http.get(
-      url,
-      headers: {'Authorization': 'Bearer $token'},
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final movies = (data['movies'] as List)
-          .map((json) => Movie.fromJson(json))
-          .toList();
-      return movies;
-    } else {
-      throw ApiException('No se pudieron cargar las películas por género');
-    }
-  }
-
-  /// DETALLE DE PELÍCULA
-  static Future<Movie> getMovieDetail(String movieId) async {
-    final url = Uri.parse('$baseUrl/movies/$movieId');
-    final token = await StorageService.getToken();
-
-    final response = await http.get(
-      url,
-      headers: {'Authorization': 'Bearer $token'},
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return Movie.fromJson(data['movie']);
-    } else {
-      throw ApiException('No se pudo cargar el detalle de la película');
-    }
-  }
-
-  /// TOGGLE LIKE
+  /// Toggle Like de película
   static Future<Movie> toggleLike(String movieId) async {
     final url = Uri.parse('$baseUrl/movies/$movieId/like');
     final token = await StorageService.getToken();
@@ -139,7 +146,7 @@ class ApiService {
     }
   }
 
-  /// TOGGLE WATCHLIST
+  /// Toggle Watchlist de película
   static Future<Movie> toggleWatchlist(String movieId) async {
     final url = Uri.parse('$baseUrl/movies/$movieId/watchlist');
     final token = await StorageService.getToken();
@@ -156,7 +163,7 @@ class ApiService {
     }
   }
 
-  /// GET ADS PERSONALIZADOS
+  /// Obtener anuncio personalizado de la película (adTagUrl)
   static Future<String?> getAdTagUrl(String movieId) async {
     final url = Uri.parse('$baseUrl/movies/$movieId/ad');
     final token = await StorageService.getToken();
@@ -170,13 +177,13 @@ class ApiService {
       final data = jsonDecode(response.body);
       return data['ad_tag_url'] as String?;
     } else {
-      return null;
+      return null; // Por defecto se puede usar un adTagUrl general en el reproductor
     }
   }
 
-  /// CONTINUE WATCHING
-  static Future<List<Movie>> getContinueWatching() async {
-    final url = Uri.parse('$baseUrl/continue-watching');
+  /// Películas en continue watching
+  static Future<List<Movie>> continueWatching(String userId) async {
+    final url = Uri.parse('$baseUrl/movies/continue-watching?user_id=$userId');
     final token = await StorageService.getToken();
 
     final response = await http.get(
@@ -191,7 +198,7 @@ class ApiService {
           .toList();
       return movies;
     } else {
-      throw ApiException('No se pudo cargar la lista de Continue Watching');
+      throw ApiException('No se pudieron cargar las películas en progreso');
     }
   }
 }
