@@ -23,11 +23,15 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final movieProvider = Provider.of<MovieProvider>(context, listen: false);
-      await movieProvider.loadMoviesByGenre();
-      await movieProvider.loadTop10Movies();
-      await movieProvider.loadContinueWatching();
-      await movieProvider.loadWatchlist();
+      await _loadAllMovies(movieProvider);
     });
+  }
+
+  Future<void> _loadAllMovies(MovieProvider movieProvider) async {
+    await movieProvider.loadMoviesByGenre();
+    await movieProvider.loadTop10Movies();
+    await movieProvider.loadContinueWatching();
+    await movieProvider.loadWatchlist();
   }
 
   void _logout() async {
@@ -103,23 +107,16 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Consumer<MovieProvider>(
         builder: (context, movieProvider, child) {
-          if (movieProvider.isLoading &&
-              movieProvider.moviesByGenre.isEmpty) {
+          if (movieProvider.isLoading && movieProvider.moviesByGenre.isEmpty) {
             return const Center(
               child: CircularProgressIndicator(
-                valueColor:
-                    AlwaysStoppedAnimation<Color>(GSFilmsColors.neonGold),
+                valueColor: AlwaysStoppedAnimation<Color>(GSFilmsColors.neonGold),
               ),
             );
           }
 
           return RefreshIndicator(
-            onRefresh: () async {
-              await movieProvider.loadMoviesByGenre();
-              await movieProvider.loadTop10Movies();
-              await movieProvider.loadContinueWatching();
-              await movieProvider.loadWatchlist();
-            },
+            onRefresh: () async => await _loadAllMovies(movieProvider),
             color: GSFilmsColors.neonGold,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -133,115 +130,30 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   // 🔁 Continue Watching Section
                   if (movieProvider.continueWatching.isNotEmpty) ...[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Text(
-                        'Seguir Viendo',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
-                            ?.copyWith(
-                              color: GSFilmsColors.neonGold,
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
+                    _buildSectionTitle('Seguir Viendo'),
+                    _buildHorizontalMovieList(
+                      movieProvider.continueWatching,
+                      movieProvider,
                     ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      height: 240,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: movieProvider.continueWatching.length,
-                        itemBuilder: (context, index) {
-                          final movie = movieProvider.continueWatching[index];
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 12),
-                            child: MovieCard(
-                              movie: movie,
-                              onTap: () => _navigateToMovieDetail(movie),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 32),
                   ],
 
                   // ⭐ Watchlist Section
                   if (movieProvider.watchlist.isNotEmpty) ...[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Text(
-                        'Mi Lista',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
-                            ?.copyWith(
-                              color: GSFilmsColors.neonGold,
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
+                    _buildSectionTitle('Mi Lista'),
+                    _buildHorizontalMovieList(
+                      movieProvider.watchlist,
+                      movieProvider,
                     ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      height: 240,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: movieProvider.watchlist.length,
-                        itemBuilder: (context, index) {
-                          final movie = movieProvider.watchlist[index];
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 12),
-                            child: MovieCard(
-                              movie: movie,
-                              onTap: () => _navigateToMovieDetail(movie),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 32),
                   ],
 
                   // 🔝 Top 10
                   if (movieProvider.top10Movies.isNotEmpty) ...[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Text(
-                        'Top 10 Más Vistas',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
-                            ?.copyWith(
-                              color: GSFilmsColors.neonGold,
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
+                    _buildSectionTitle('Top 10 Más Vistas'),
+                    _buildHorizontalMovieList(
+                      movieProvider.top10Movies,
+                      movieProvider,
+                      showRank: true,
                     ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      height: 280,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: movieProvider.top10Movies.length,
-                        itemBuilder: (context, index) {
-                          final movie = movieProvider.top10Movies[index];
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 12),
-                            child: MovieCard(
-                              movie: movie,
-                              showRank: true,
-                              rank: index + 1,
-                              onTap: () => _navigateToMovieDetail(movie),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 32),
                   ],
 
                   // 🎬 Movies by Genre
@@ -249,42 +161,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Padding(
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Text(
-                            genre.name,
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
-                                ?.copyWith(
-                                  color: GSFilmsColors.neonGold,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          height: 280,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 16),
-                            itemCount: genre.movies.length,
-                            itemBuilder: (context, index) {
-                              final movie = genre.movies[index];
-                              return Padding(
-                                padding: const EdgeInsets.only(right: 12),
-                                child: MovieCard(
-                                  movie: movie,
-                                  onTap: () =>
-                                      _navigateToMovieDetail(movie),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 32),
+                        _buildSectionTitle(genre.name),
+                        _buildHorizontalMovieList(genre.movies, movieProvider),
                       ],
                     );
                   }).toList(),
@@ -301,38 +179,74 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.error,
-                                color: GSFilmsColors.error),
+                            const Icon(Icons.error, color: GSFilmsColors.error),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 movieProvider.error!,
-                                style: const TextStyle(
-                                    color: GSFilmsColors.error),
+                                style: const TextStyle(color: GSFilmsColors.error),
                               ),
                             ),
                             TextButton(
-                              onPressed: () {
+                              onPressed: () async {
                                 movieProvider.clearError();
-                                movieProvider.loadMoviesByGenre();
-                                movieProvider.loadTop10Movies();
-                                movieProvider.loadContinueWatching();
-                                movieProvider.loadWatchlist();
+                                await _loadAllMovies(movieProvider);
                               },
                               child: const Text(
                                 'Reintentar',
-                                style: TextStyle(
-                                    color: GSFilmsColors.neonGold),
+                                style: TextStyle(color: GSFilmsColors.neonGold),
                               ),
                             ),
                           ],
                         ),
                       ),
                     ),
-
                   const SizedBox(height: 20),
                 ],
               ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+      child: Text(
+        title,
+        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: GSFilmsColors.neonGold,
+              fontWeight: FontWeight.bold,
+            ),
+      ),
+    );
+  }
+
+  Widget _buildHorizontalMovieList(List<Movie> movies, MovieProvider provider,
+      {bool showRank = false}) {
+    return SizedBox(
+      height: 240,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: movies.length,
+        itemBuilder: (context, index) {
+          final movie = movies[index];
+          return Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: MovieCard(
+              movie: movie,
+              showRank: showRank,
+              rank: showRank ? index + 1 : null,
+              onTap: () => _navigateToMovieDetail(movie),
+              onLikePressed: () async {
+                await provider.toggleLike(movie.id);
+              },
+              onWatchlistPressed: () async {
+                await provider.toggleWatchlist(movie.id);
+              },
             ),
           );
         },
