@@ -21,10 +21,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final movieProvider = Provider.of<MovieProvider>(context, listen: false);
-      movieProvider.loadMoviesByGenre();
-      movieProvider.loadTop10Movies();
+      await movieProvider.loadMoviesByGenre();
+      await movieProvider.loadTop10Movies();
+      await movieProvider.loadContinueWatching();
+      await movieProvider.loadWatchlist();
     });
   }
 
@@ -44,6 +46,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _navigateToMovieDetail(Movie movie) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => MovieDetailScreen(movie: movie),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -57,9 +67,9 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               'GSFilms',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: GSFilmsColors.neonGold,
-                fontWeight: FontWeight.bold,
-              ),
+                    color: GSFilmsColors.neonGold,
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
           ],
         ),
@@ -82,7 +92,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Icon(Icons.logout, color: GSFilmsColors.error),
                     SizedBox(width: 8),
-                    Text('Cerrar Sesión', style: TextStyle(color: GSFilmsColors.white)),
+                    Text('Cerrar Sesión',
+                        style: TextStyle(color: GSFilmsColors.white)),
                   ],
                 ),
               ),
@@ -92,149 +103,239 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Consumer<MovieProvider>(
         builder: (context, movieProvider, child) {
-          if (movieProvider.isLoading && movieProvider.moviesByGenre.isEmpty) {
+          if (movieProvider.isLoading &&
+              movieProvider.moviesByGenre.isEmpty) {
             return const Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(GSFilmsColors.neonGold),
+                valueColor:
+                    AlwaysStoppedAnimation<Color>(GSFilmsColors.neonGold),
               ),
             );
           }
 
-          return SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Search Bar
-                const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: MovieSearchBar(),
-                ),
-                
-                // Top 10 Section
-                if (movieProvider.top10Movies.isNotEmpty) ...[
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(
-                      'Top 10 Más Vistas',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: GSFilmsColors.neonGold,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+          return RefreshIndicator(
+            onRefresh: () async {
+              await movieProvider.loadMoviesByGenre();
+              await movieProvider.loadTop10Movies();
+              await movieProvider.loadContinueWatching();
+              await movieProvider.loadWatchlist();
+            },
+            color: GSFilmsColors.neonGold,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: MovieSearchBar(),
                   ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    height: 280,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: movieProvider.top10Movies.length,
-                      itemBuilder: (context, index) {
-                        final movie = movieProvider.top10Movies[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 12),
-                          child: MovieCard(
-                            movie: movie,
-                            showRank: true,
-                            rank: index + 1,
-                            onTap: () => _navigateToMovieDetail(movie),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                ],
 
-                // Movies by Genre
-                ...movieProvider.moviesByGenre.map((genre) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Text(
-                          genre.name,
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            color: GSFilmsColors.neonGold,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        height: 280,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          itemCount: genre.movies.length,
-                          itemBuilder: (context, index) {
-                            final movie = genre.movies[index];
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 12),
-                              child: MovieCard(
-                                movie: movie,
-                                onTap: () => _navigateToMovieDetail(movie),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                    ],
-                  );
-                }).toList(),
-
-                // Error handling
-                if (movieProvider.error != null)
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: GSFilmsColors.error.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: GSFilmsColors.error),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.error, color: GSFilmsColors.error),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              movieProvider.error!,
-                              style: const TextStyle(color: GSFilmsColors.error),
+                  // 🔁 Continue Watching Section
+                  if (movieProvider.continueWatching.isNotEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Text(
+                        'Seguir Viendo',
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall
+                            ?.copyWith(
+                              color: GSFilmsColors.neonGold,
+                              fontWeight: FontWeight.bold,
                             ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: 240,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: movieProvider.continueWatching.length,
+                        itemBuilder: (context, index) {
+                          final movie = movieProvider.continueWatching[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 12),
+                            child: MovieCard(
+                              movie: movie,
+                              onTap: () => _navigateToMovieDetail(movie),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                  ],
+
+                  // ⭐ Watchlist Section
+                  if (movieProvider.watchlist.isNotEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Text(
+                        'Mi Lista',
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall
+                            ?.copyWith(
+                              color: GSFilmsColors.neonGold,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: 240,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: movieProvider.watchlist.length,
+                        itemBuilder: (context, index) {
+                          final movie = movieProvider.watchlist[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 12),
+                            child: MovieCard(
+                              movie: movie,
+                              onTap: () => _navigateToMovieDetail(movie),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                  ],
+
+                  // 🔝 Top 10
+                  if (movieProvider.top10Movies.isNotEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Text(
+                        'Top 10 Más Vistas',
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall
+                            ?.copyWith(
+                              color: GSFilmsColors.neonGold,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: 280,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: movieProvider.top10Movies.length,
+                        itemBuilder: (context, index) {
+                          final movie = movieProvider.top10Movies[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 12),
+                            child: MovieCard(
+                              movie: movie,
+                              showRank: true,
+                              rank: index + 1,
+                              onTap: () => _navigateToMovieDetail(movie),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                  ],
+
+                  // 🎬 Movies by Genre
+                  ...movieProvider.moviesByGenre.map((genre) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Text(
+                            genre.name,
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(
+                                  color: GSFilmsColors.neonGold,
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
-                          TextButton(
-                            onPressed: () {
-                              movieProvider.clearError();
-                              movieProvider.loadMoviesByGenre();
-                              movieProvider.loadTop10Movies();
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          height: 280,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: genre.movies.length,
+                            itemBuilder: (context, index) {
+                              final movie = genre.movies[index];
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 12),
+                                child: MovieCard(
+                                  movie: movie,
+                                  onTap: () =>
+                                      _navigateToMovieDetail(movie),
+                                ),
+                              );
                             },
-                            child: const Text(
-                              'Reintentar',
-                              style: TextStyle(color: GSFilmsColors.neonGold),
-                            ),
                           ),
-                        ],
+                        ),
+                        const SizedBox(height: 32),
+                      ],
+                    );
+                  }).toList(),
+
+                  if (movieProvider.error != null)
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: GSFilmsColors.error.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: GSFilmsColors.error),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.error,
+                                color: GSFilmsColors.error),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                movieProvider.error!,
+                                style: const TextStyle(
+                                    color: GSFilmsColors.error),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                movieProvider.clearError();
+                                movieProvider.loadMoviesByGenre();
+                                movieProvider.loadTop10Movies();
+                                movieProvider.loadContinueWatching();
+                                movieProvider.loadWatchlist();
+                              },
+                              child: const Text(
+                                'Reintentar',
+                                style: TextStyle(
+                                    color: GSFilmsColors.neonGold),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                
-                const SizedBox(height: 20),
-              ],
+
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
           );
         },
-      ),
-    );
-  }
-
-  void _navigateToMovieDetail(Movie movie) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => MovieDetailScreen(movie: movie),
       ),
     );
   }
