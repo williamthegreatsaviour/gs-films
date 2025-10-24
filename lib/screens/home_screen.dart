@@ -12,14 +12,14 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> {
   late final MovieProvider _movieProvider;
 
   @override
   void initState() {
     super.initState();
     _movieProvider = Provider.of<MovieProvider>(context, listen: false);
-    _movieProvider.loadMovies(); // Asegúrate de que carga las películas
+    _movieProvider.loadMovies();
   }
 
   @override
@@ -40,19 +40,45 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             );
           }
 
+          // Divide movies en filas de 2
+          final List<List<Movie>> rows = [];
+          for (int i = 0; i < provider.movies.length; i += 2) {
+            rows.add(provider.movies.sublist(
+                i,
+                i + 2 > provider.movies.length
+                    ? provider.movies.length
+                    : i + 2));
+          }
+
           return Padding(
             padding: const EdgeInsets.all(12.0),
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.65,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-              ),
-              itemCount: provider.movies.length,
-              itemBuilder: (context, index) {
-                final movie = provider.movies[index];
-                return MoviePosterAnimated(movie: movie, index: index);
+            child: ListView.builder(
+              itemCount: rows.length,
+              itemBuilder: (context, rowIndex) {
+                final rowMovies = rows[rowIndex];
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: rowMovies
+                      .asMap()
+                      .entries
+                      .map((entry) => Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                  right: entry.key == 0 &&
+                                          rowMovies.length > 1
+                                      ? 6
+                                      : 0,
+                                  left: entry.key == 1 ? 6 : 0),
+                              child: MoviePosterAnimated(
+                                movie: entry.value,
+                                delay: Duration(
+                                    milliseconds: (rowIndex * 2 + entry.key) *
+                                        150),
+                              ),
+                            ),
+                          ))
+                      .toList(),
+                );
               },
             ),
           );
@@ -64,15 +90,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
 class MoviePosterAnimated extends StatefulWidget {
   final Movie movie;
-  final int index;
+  final Duration delay;
 
-  const MoviePosterAnimated({super.key, required this.movie, required this.index});
+  const MoviePosterAnimated({super.key, required this.movie, required this.delay});
 
   @override
   State<MoviePosterAnimated> createState() => _MoviePosterAnimatedState();
 }
 
-class _MoviePosterAnimatedState extends State<MoviePosterAnimated> with TickerProviderStateMixin {
+class _MoviePosterAnimatedState extends State<MoviePosterAnimated>
+    with TickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
@@ -93,8 +120,7 @@ class _MoviePosterAnimatedState extends State<MoviePosterAnimated> with TickerPr
       CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
     );
 
-    // Delay escalonado por índice
-    Future.delayed(Duration(milliseconds: widget.index * 150), () {
+    Future.delayed(widget.delay, () {
       if (mounted) _controller.forward();
     });
   }
