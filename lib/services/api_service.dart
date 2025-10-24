@@ -4,128 +4,157 @@ import 'package:cinepulso/models/movie.dart';
 import 'package:cinepulso/models/user.dart';
 
 class ApiService {
-  static const String baseUrl = 'https://gsfilms.com.mx/api';
+  static const String baseUrl = 'https://gsfilms.com.mx/gsfilms/api';
 
-  // LOGIN
+  // ===== LOGIN =====
   static Future<User?> login(String username, String password) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/login'),
-        body: {'email': username, 'password': password},
+        body: {'username': username, 'password': password},
       );
 
       if (response.statusCode == 200) {
-        return User.fromJson(json.decode(response.body)['data']);
+        final data = json.decode(response.body);
+        return User.fromJson(data);
       } else {
-        return null;
+        throw Exception('Error de login');
       }
     } catch (e) {
-      print(e);
+      print('Login error: $e');
       return null;
     }
   }
 
-  // GET MOVIES
-  static Future<List<Movie>> getMovies({String? genreId}) async {
+  // ===== MOVIES BY GENRE =====
+  static Future<List<MovieGenre>> getMoviesByGenre() async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/movies${genreId != null ? '?genre_id=$genreId' : ''}'),
-      );
-
+      final response = await http.get(Uri.parse('$baseUrl/movies/genres'));
       if (response.statusCode == 200) {
-        final List moviesJson = json.decode(response.body)['data'] ?? [];
-        return moviesJson.map((json) => Movie.fromJson(json)).toList();
+        final data = json.decode(response.body) as List;
+        return data.map((json) => MovieGenre.fromJson(json)).toList();
       } else {
-        return [];
+        throw Exception('Error cargando películas por género');
       }
     } catch (e) {
-      print(e);
+      print('getMoviesByGenre error: $e');
       return [];
     }
   }
 
-  // LIKE A MOVIE
-  static Future<bool> likeMovie(String movieId, String userToken) async {
+  // ===== TOP 10 MOVIES =====
+  static Future<List<Movie>> getTop10Movies() async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/likes'),
-        headers: {'Authorization': 'Bearer $userToken'},
-        body: {'movie_id': movieId},
-      );
-
-      return response.statusCode == 200;
-    } catch (e) {
-      print(e);
-      return false;
-    }
-  }
-
-  // WATCHLIST
-  static Future<bool> addToWatchlist(String movieId, String userToken) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/watchlist'),
-        headers: {'Authorization': 'Bearer $userToken'},
-        body: {'movie_id': movieId},
-      );
-
-      return response.statusCode == 200;
-    } catch (e) {
-      print(e);
-      return false;
-    }
-  }
-
-  static Future<bool> removeFromWatchlist(String movieId, String userToken) async {
-    try {
-      final response = await http.delete(
-        Uri.parse('$baseUrl/watchlist/$movieId'),
-        headers: {'Authorization': 'Bearer $userToken'},
-      );
-
-      return response.statusCode == 200;
-    } catch (e) {
-      print(e);
-      return false;
-    }
-  }
-
-  static Future<List<Movie>> getWatchlist(String userToken) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/watchlist'),
-        headers: {'Authorization': 'Bearer $userToken'},
-      );
-
+      final response = await http.get(Uri.parse('$baseUrl/movies/top10'));
       if (response.statusCode == 200) {
-        final List moviesJson = json.decode(response.body)['data'] ?? [];
-        return moviesJson.map((json) => Movie.fromJson(json)).toList();
+        final data = json.decode(response.body) as List;
+        return data.map((json) => Movie.fromJson(json)).toList();
       } else {
-        return [];
+        throw Exception('Error cargando Top 10');
       }
     } catch (e) {
-      print(e);
+      print('getTop10Movies error: $e');
       return [];
     }
   }
 
-  // CONTINUE WATCHING
-  static Future<List<Movie>> getContinueWatching(String userToken) async {
+  // ===== RENTED MOVIES =====
+  static Future<List<Movie>> getRentedMovies(String userId) async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/continue-watching'),
-        headers: {'Authorization': 'Bearer $userToken'},
-      );
-
+      final response =
+          await http.get(Uri.parse('$baseUrl/movies/rented?user_id=$userId'));
       if (response.statusCode == 200) {
-        final List moviesJson = json.decode(response.body)['data'] ?? [];
-        return moviesJson.map((json) => Movie.fromJson(json)).toList();
+        final data = json.decode(response.body) as List;
+        return data.map((json) => Movie.fromJson(json)).toList();
       } else {
-        return [];
+        throw Exception('Error cargando películas rentadas');
       }
     } catch (e) {
-      print(e);
+      print('getRentedMovies error: $e');
       return [];
+    }
+  }
+
+  // ===== SEARCH MOVIES =====
+  static Future<List<Movie>> searchMovies(String query) async {
+    try {
+      final response =
+          await http.get(Uri.parse('$baseUrl/movies/search?query=$query'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as List;
+        return data.map((json) => Movie.fromJson(json)).toList();
+      } else {
+        throw Exception('Error en la búsqueda');
+      }
+    } catch (e) {
+      print('searchMovies error: $e');
+      return [];
+    }
+  }
+
+  // ===== CONTINUE WATCHING =====
+  static Future<List<Movie>> getContinueWatching() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/movies/continue-watching'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as List;
+        return data.map((json) => Movie.fromJson(json)).toList();
+      } else {
+        throw Exception('Error cargando Continue Watching');
+      }
+    } catch (e) {
+      print('getContinueWatching error: $e');
+      return [];
+    }
+  }
+
+  // ===== WATCHLIST =====
+  static Future<List<Movie>> getWatchlist() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/movies/watchlist'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as List;
+        return data.map((json) => Movie.fromJson(json)).toList();
+      } else {
+        throw Exception('Error cargando Watchlist');
+      }
+    } catch (e) {
+      print('getWatchlist error: $e');
+      return [];
+    }
+  }
+
+  // ===== TOGGLE LIKE =====
+  static Future<Movie> toggleLike(String movieId) async {
+    try {
+      final response =
+          await http.post(Uri.parse('$baseUrl/movies/$movieId/toggle-like'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return Movie.fromJson(data);
+      } else {
+        throw Exception('Error al dar like');
+      }
+    } catch (e) {
+      print('toggleLike error: $e');
+      throw e;
+    }
+  }
+
+  // ===== TOGGLE WATCHLIST =====
+  static Future<Movie> toggleWatchlist(String movieId) async {
+    try {
+      final response =
+          await http.post(Uri.parse('$baseUrl/movies/$movieId/toggle-watchlist'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return Movie.fromJson(data);
+      } else {
+        throw Exception('Error al actualizar Watchlist');
+      }
+    } catch (e) {
+      print('toggleWatchlist error: $e');
+      throw e;
     }
   }
 }
