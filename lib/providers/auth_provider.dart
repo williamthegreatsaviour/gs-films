@@ -15,56 +15,51 @@ class AuthProvider with ChangeNotifier {
   bool get isLoggedIn => _isLoggedIn;
   String? get error => _error;
 
-  /// Inicializa la sesión si hay un usuario guardado
+  // Inicializar sesión segura
   Future<void> initialize() async {
-    _setLoading(true);
+    _isLoading = true;
+    notifyListeners();
     try {
       final hasSession = await StorageService.hasSession();
       if (hasSession) {
         _user = await StorageService.getUser();
         _isLoggedIn = _user != null;
       }
-    } catch (e, st) {
-      log('Error initializing auth: $e', stackTrace: st);
+    } catch (e) {
+      log('Error initializing auth: $e', level: 900);
     } finally {
-      _setLoading(false);
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
-  /// Login con backend
+  // Login seguro
   Future<bool> login(String username, String password) async {
-    _setLoading(true);
-    _setError(null);
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
 
     try {
       final user = await ApiService.login(username, password);
-
       if (user != null) {
-        // Login exitoso
         _user = user;
         _isLoggedIn = true;
-        await StorageService.saveUser(user); // persistencia segura
-        _setLoading(false);
+        await StorageService.saveUser(user); // Guardado seguro
         return true;
       } else {
-        // Login fallido (credenciales incorrectas)
-        _setError('Usuario o contraseña incorrectos');
+        _error = 'Credenciales incorrectas';
+        log('Login fallido para usuario "$username"', level: 900);
       }
-    } on ApiException catch (e) {
-      // Error específico del backend
-      _setError(e.message);
-      log('ApiException login: ${e.message}');
-    } catch (e, st) {
-      // Error de conexión u otros errores
-      _setError('Error de conexión. Intenta nuevamente.');
-      log('Login error: $e', stackTrace: st);
+    } catch (e) {
+      _error = 'Error de conexión';
+      log('Login error: $e', level: 1000);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-
-    _setLoading(false);
     return false;
   }
 
-  /// Logout y limpieza de sesión
   Future<void> logout() async {
     _user = null;
     _isLoggedIn = false;
@@ -72,20 +67,8 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Limpia errores visibles en UI
-  void clearError() => _setError(null);
-
-  /// -----------------------
-  /// Métodos internos
-  /// -----------------------
-
-  void _setLoading(bool value) {
-    _isLoading = value;
-    notifyListeners();
-  }
-
-  void _setError(String? message) {
-    _error = message;
+  void clearError() {
+    _error = null;
     notifyListeners();
   }
 }
