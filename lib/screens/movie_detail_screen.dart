@@ -5,14 +5,23 @@ import 'package:cinepulso/screens/video_player_screen.dart';
 import 'package:cinepulso/theme.dart';
 import 'package:cinepulso/providers/movie_provider.dart';
 
-class MovieDetailScreen extends StatelessWidget {
+class MovieDetailScreen extends StatefulWidget {
   final Movie movie;
 
   const MovieDetailScreen({super.key, required this.movie});
 
   @override
+  State<MovieDetailScreen> createState() => _MovieDetailScreenState();
+}
+
+class _MovieDetailScreenState extends State<MovieDetailScreen> {
+  bool _isLiking = false;
+  bool _isUpdatingWatchlist = false;
+
+  @override
   Widget build(BuildContext context) {
     final movieProvider = Provider.of<MovieProvider>(context, listen: false);
+    final movie = widget.movie;
 
     return Scaffold(
       backgroundColor: GSFilmsColors.black,
@@ -27,16 +36,28 @@ class MovieDetailScreen extends StatelessWidget {
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
                 children: [
+                  // Poster with error handling
                   Container(
                     width: double.infinity,
                     height: double.infinity,
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: NetworkImage(movie.posterUrl),
+                    child: ClipRRect(
+                      child: Image.network(
+                        movie.posterUrl,
                         fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          color: GSFilmsColors.charcoal,
+                          child: const Center(
+                            child: Icon(
+                              Icons.movie,
+                              color: GSFilmsColors.mediumGray,
+                              size: 60,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
+                  // Gradient overlay
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -50,6 +71,7 @@ class MovieDetailScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+                  // Like & Watchlist buttons
                   Positioned(
                     top: 16,
                     right: 16,
@@ -61,17 +83,34 @@ class MovieDetailScreen extends StatelessWidget {
                             color: GSFilmsColors.red,
                             size: 28,
                           ),
-                          onPressed: () async {
-                            final updatedMovie =
-                                await movieProvider.toggleLike(movie.id);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(updatedMovie.isLiked
-                                    ? 'Añadido a favoritos'
-                                    : 'Quitado de favoritos'),
-                              ),
-                            );
-                          },
+                          onPressed: _isLiking
+                              ? null
+                              : () async {
+                                  setState(() {
+                                    _isLiking = true;
+                                  });
+                                  try {
+                                    final updatedMovie =
+                                        await movieProvider.toggleLike(movie.id);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(updatedMovie.isLiked
+                                            ? 'Añadido a favoritos'
+                                            : 'Quitado de favoritos'),
+                                      ),
+                                    );
+                                  } catch (_) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Error al actualizar favoritos'),
+                                      ),
+                                    );
+                                  } finally {
+                                    setState(() {
+                                      _isLiking = false;
+                                    });
+                                  }
+                                },
                         ),
                         IconButton(
                           icon: Icon(
@@ -81,21 +120,39 @@ class MovieDetailScreen extends StatelessWidget {
                             color: GSFilmsColors.neonGold,
                             size: 28,
                           ),
-                          onPressed: () async {
-                            final updatedMovie =
-                                await movieProvider.toggleWatchlist(movie.id);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(updatedMovie.inWatchlist
-                                    ? 'Añadido a Mi Lista'
-                                    : 'Quitado de Mi Lista'),
-                              ),
-                            );
-                          },
+                          onPressed: _isUpdatingWatchlist
+                              ? null
+                              : () async {
+                                  setState(() {
+                                    _isUpdatingWatchlist = true;
+                                  });
+                                  try {
+                                    final updatedMovie =
+                                        await movieProvider.toggleWatchlist(movie.id);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(updatedMovie.inWatchlist
+                                            ? 'Añadido a Mi Lista'
+                                            : 'Quitado de Mi Lista'),
+                                      ),
+                                    );
+                                  } catch (_) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Error al actualizar Mi Lista'),
+                                      ),
+                                    );
+                                  } finally {
+                                    setState(() {
+                                      _isUpdatingWatchlist = false;
+                                    });
+                                  }
+                                },
                         ),
                       ],
                     ),
                   ),
+                  // Play button overlay
                   Positioned.fill(
                     child: Center(
                       child: GestureDetector(
@@ -108,8 +165,7 @@ class MovieDetailScreen extends StatelessWidget {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color:
-                                    GSFilmsColors.neonGold.withValues(alpha: 0.5),
+                                color: GSFilmsColors.neonGold.withValues(alpha: 0.5),
                                 blurRadius: 20,
                                 spreadRadius: 2,
                               ),
@@ -175,8 +231,7 @@ class MovieDetailScreen extends StatelessWidget {
                         const SizedBox(width: 4),
                         Text(
                           '${_formatViews(movie.views)} vistas',
-                          style:
-                              const TextStyle(color: GSFilmsColors.lightGray),
+                          style: const TextStyle(color: GSFilmsColors.lightGray),
                         ),
                       ],
                     ],
@@ -213,10 +268,7 @@ class MovieDetailScreen extends StatelessWidget {
                       icon: const Icon(Icons.play_arrow, size: 28),
                       label: Text(
                         'Reproducir',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleLarge
-                            ?.copyWith(
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: GSFilmsColors.black,
                             ),
@@ -236,7 +288,7 @@ class MovieDetailScreen extends StatelessWidget {
   void _playMovie(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => VideoPlayerScreen(movie: movie),
+        builder: (context) => VideoPlayerScreen(movie: widget.movie),
       ),
     );
   }
