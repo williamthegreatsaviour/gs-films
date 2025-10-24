@@ -5,6 +5,8 @@ import 'package:cinepulso/theme.dart';
 class MovieCard extends StatelessWidget {
   final Movie movie;
   final VoidCallback onTap;
+  final VoidCallback? onLikePressed;
+  final VoidCallback? onWatchlistPressed;
   final bool showRank;
   final int? rank;
 
@@ -12,6 +14,8 @@ class MovieCard extends StatelessWidget {
     super.key,
     required this.movie,
     required this.onTap,
+    this.onLikePressed,
+    this.onWatchlistPressed,
     this.showRank = false,
     this.rank,
   });
@@ -97,7 +101,7 @@ class MovieCard extends StatelessWidget {
                           ],
                         ),
                         child: Text(
-                          '#\$rank',
+                          '#$rank',
                           style: const TextStyle(
                             color: GSFilmsColors.black,
                             fontSize: 12,
@@ -129,6 +133,37 @@ class MovieCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                  // Like Button
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Column(
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            movie.isLiked ? Icons.favorite : Icons.favorite_border,
+                            color: movie.isLiked
+                                ? GSFilmsColors.error
+                                : GSFilmsColors.white,
+                          ),
+                          onPressed: onLikePressed,
+                          tooltip: 'Like',
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            movie.isInWatchlist
+                                ? Icons.bookmark
+                                : Icons.bookmark_border,
+                            color: movie.isInWatchlist
+                                ? GSFilmsColors.neonGold
+                                : GSFilmsColors.white,
+                          ),
+                          onPressed: onWatchlistPressed,
+                          tooltip: 'Watchlist',
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -139,9 +174,9 @@ class MovieCard extends StatelessWidget {
               child: Text(
                 movie.title,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: GSFilmsColors.white,
-                  fontWeight: FontWeight.w600,
-                ),
+                      color: GSFilmsColors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -156,8 +191,8 @@ class MovieCard extends StatelessWidget {
                     child: Text(
                       movie.genre,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: GSFilmsColors.lightGray,
-                      ),
+                            color: GSFilmsColors.lightGray,
+                          ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -171,9 +206,9 @@ class MovieCard extends StatelessWidget {
                     Text(
                       _formatViews(movie.views),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: GSFilmsColors.lightGray,
-                        fontSize: 10,
-                      ),
+                            color: GSFilmsColors.lightGray,
+                            fontSize: 10,
+                          ),
                     ),
                   ],
                 ],
@@ -187,9 +222,9 @@ class MovieCard extends StatelessWidget {
 
   String _formatViews(int views) {
     if (views >= 1000000) {
-      return '\${(views / 1000000).toStringAsFixed(1)}M';
+      return '${(views / 1000000).toStringAsFixed(1)}M';
     } else if (views >= 1000) {
-      return '\${(views / 1000).toStringAsFixed(1)}K';
+      return '${(views / 1000).toStringAsFixed(1)}K';
     } else {
       return views.toString();
     }
