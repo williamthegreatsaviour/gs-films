@@ -10,7 +10,7 @@ class Movie {
   final List<String>? audioTracks;
   final bool isRented;
   final int views;
-  final String? adTagUrl; // ya existe
+  final String? adTagUrl;
 
   Movie({
     required this.id,
@@ -42,7 +42,7 @@ class Movie {
           : null,
       isRented: json['rentada'] == 1 || json['is_rented'] == true,
       views: json['vistas'] ?? json['views'] ?? 0,
-      adTagUrl: json['ad_tag_url'], // <-- asignamos aquí
+      adTagUrl: json['ad_tag_url'],
     );
   }
 
@@ -59,26 +59,7 @@ class Movie {
       'pistas_audio': audioTracks,
       'rentada': isRented ? 1 : 0,
       'vistas': views,
-      'ad_tag_url': adTagUrl, // <-- y aquí
+      'ad_tag_url': adTagUrl,
     };
-  }
-}
-
-class MovieGenre {
-  final String name;
-  final List<Movie> movies;
-
-  MovieGenre({
-    required this.name,
-    required this.movies,
-  });
-
-  factory MovieGenre.fromJson(Map<String, dynamic> json) {
-    return MovieGenre(
-      name: json['genero'] ?? json['genre'] ?? '',
-      movies: (json['peliculas'] ?? json['movies'] ?? [])
-          .map<Movie>((movie) => Movie.fromJson(movie))
-          .toList(),
-    );
   }
 }
