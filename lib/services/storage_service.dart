@@ -1,91 +1,48 @@
 import 'dart:convert';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cinepulso/models/user.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:crypto/crypto.dart';
 
 class StorageService {
-  static const FlutterSecureStorage _secureStorage = FlutterSecureStorage();
-  static const String _userKey = 'gsfilms_user';
-  static const String _tokenKey = 'gsfilms_token';
-  static const String _sessionKey = 'gsfilms_session';
+  static final _secureStorage = const FlutterSecureStorage();
 
+  static const _keyUser = 'user_data';
+  static const _keyToken = 'user_token';
+
+  /// Guarda el usuario y token de sesión de forma segura
   static Future<void> saveUser(User user) async {
-    try {
-      // Guarda el usuario completo (incluye token si lo tiene)
-      await _secureStorage.write(
-        key: _userKey,
-        value: jsonEncode(user.toJson()),
-      );
-      
-      // También guarda el token por separado (útil para interceptores HTTP)
-      if (user.token != null) {
-        await _secureStorage.write(key: _tokenKey, value: user.token!);
-      }
-      
-      await saveSession(true);
-    } catch (e) {
-      print('Error saving user: $e');
-    }
+    final userJson = jsonEncode(user.toJson());
+    await _secureStorage.write(key: _keyUser, value: userJson);
+
+    // Crea un token seguro a partir del username y timestamp
+    final token = base64Url.encode(sha256.convert(utf8.encode('${user.username}_${DateTime.now().millisecondsSinceEpoch}')).bytes);
+    await _secureStorage.write(key: _keyToken, value: token);
   }
 
+  /// Obtiene usuario guardado
   static Future<User?> getUser() async {
-    try {
-      final userString = await _secureStorage.read(key: _userKey);
-      if (userString != null) {
-        final userData = jsonDecode(userString);
-        return User.fromJson(userData);
-      }
-    } catch (e) {
-      print('Error getting user: $e');
+    final userJson = await _secureStorage.read(key: _keyUser);
+    if (userJson != null) {
+      return User.fromJson(jsonDecode(userJson));
     }
     return null;
   }
 
+  /// Obtiene token seguro
   static Future<String?> getToken() async {
-    try {
-      return await _secureStorage.read(key: _tokenKey);
-    } catch (e) {
-      print('Error getting token: $e');
-      return null;
-    }
+    return await _secureStorage.read(key: _keyToken);
   }
 
-  static Future<void> saveSession(bool hasSession) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(_sessionKey, hasSession);
-    } catch (e) {
-      print('Error saving session: $e');
-    }
-  }
-
+  /// Verifica si hay sesión activa
   static Future<bool> hasSession() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      return prefs.getBool(_sessionKey) ?? false;
-    } catch (e) {
-      print('Error checking session: $e');
-      return false;
-    }
+    final user = await _secureStorage.read(key: _keyUser);
+    final token = await _secureStorage.read(key: _keyToken);
+    return user != null && token != null;
   }
 
+  /// Limpia sesión
   static Future<void> clearSession() async {
-    try {
-      await _secureStorage.delete(key: _userKey);
-      await _secureStorage.delete(key: _tokenKey);
-      await saveSession(false);
-    } catch (e) {
-      print('Error clearing session: $e');
-    }
-  }
-
-  static Future<void> clearAll() async {
-    try {
-      await _secureStorage.deleteAll();
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
-    } catch (e) {
-      print('Error clearing all data: $e');
-    }
+    await _secureStorage.delete(key: _keyUser);
+    await _secureStorage.delete(key: _keyToken);
   }
 }
