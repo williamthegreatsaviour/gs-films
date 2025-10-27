@@ -15,8 +15,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    final movieProvider = Provider.of<MovieProvider>(context, listen: false);
-    movieProvider.fetchMovies();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final movieProvider = Provider.of<MovieProvider>(context, listen: false);
+      movieProvider.fetchMovies();
+    });
   }
 
   @override
@@ -42,9 +44,39 @@ class _HomeScreenState extends State<HomeScreen> {
 
           if (movieProvider.error != null) {
             return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.cloud_off, size: 64, color: GSFilmsColors.error),
+                  const SizedBox(height: 16),
+                  Text(
+                    movieProvider.error!,
+                    style: const TextStyle(
+                      color: GSFilmsColors.white,
+                      fontSize: 16,
+                      textAlign: TextAlign.center,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: movieProvider.retry,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: GSFilmsColors.neonGold,
+                      foregroundColor: GSFilmsColors.black,
+                    ),
+                    child: const Text('Reintentar'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          if (movieProvider.movies.isEmpty) {
+            return const Center(
               child: Text(
-                movieProvider.error!,
-                style: const TextStyle(color: GSFilmsColors.white),
+                'No hay películas disponibles',
+                style: TextStyle(color: GSFilmsColors.lightGray),
               ),
             );
           }
