@@ -5,12 +5,15 @@ import 'package:cinepulso/services/api_service.dart';
 class MovieProvider with ChangeNotifier {
   List<Movie> _movies = [];
   bool _isLoading = false;
+  String? _error;
 
   List<Movie> get movies => _movies;
   bool get isLoading => _isLoading;
+  String? get error => _error;
 
   Future<void> fetchMovies() async {
     _isLoading = true;
+    _error = null;
     notifyListeners();
 
     try {
@@ -34,16 +37,17 @@ class MovieProvider with ChangeNotifier {
           adTagUrl: adUrl ?? _movies[i].adTagUrl,
         );
       }
-
-      notifyListeners();
     } catch (e) {
-      print('Error fetching movies: $e');
+      _error = 'No se pudieron cargar las películas. Verifica tu conexión.';
       _movies = [];
-      notifyListeners();
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> retry() async {
+    await fetchMovies();
   }
 
   Future<Movie> toggleLike(String movieId) async {
@@ -53,7 +57,8 @@ class MovieProvider with ChangeNotifier {
       notifyListeners();
       return updatedMovie;
     } catch (e) {
-      throw Exception('No se pudo actualizar el like');
+      // Opcional: podrías agregar un error temporal aquí, pero no es crítico
+      rethrow;
     }
   }
 
@@ -64,7 +69,7 @@ class MovieProvider with ChangeNotifier {
       notifyListeners();
       return updatedMovie;
     } catch (e) {
-      throw Exception('No se pudo actualizar Mi Lista');
+      rethrow;
     }
   }
 }
