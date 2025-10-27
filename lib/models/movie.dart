@@ -11,7 +11,9 @@ class Movie {
   final bool isRented;
   final int views;
   final String? adTagUrl;
-  final double? lastWatchedPosition; // Nueva propiedad
+  final double? lastWatchedPosition;
+  final bool isLiked;        // ← faltaba esto
+  final bool inWatchlist;    // ← faltaba esto
 
   Movie({
     required this.id,
@@ -27,6 +29,8 @@ class Movie {
     this.views = 0,
     this.adTagUrl,
     this.lastWatchedPosition,
+    this.isLiked = false,        // ← valor por defecto
+    this.inWatchlist = false,    // ← valor por defecto
   });
 
   factory Movie.fromJson(Map<String, dynamic> json) {
@@ -46,6 +50,8 @@ class Movie {
       views: json['vistas'] ?? json['views'] ?? 0,
       adTagUrl: json['ad_tag_url'],
       lastWatchedPosition: (json['last_watched_position'] as num?)?.toDouble(),
+      isLiked: json['is_liked'] == true || json['liked'] == true,
+      inWatchlist: json['in_watchlist'] == true || json['watchlist'] == true,
     );
   }
 
@@ -64,6 +70,8 @@ class Movie {
       'vistas': views,
       'ad_tag_url': adTagUrl,
       'last_watched_position': lastWatchedPosition,
+      'is_liked': isLiked,
+      'in_watchlist': inWatchlist,
     };
   }
 }
