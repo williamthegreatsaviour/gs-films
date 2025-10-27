@@ -14,8 +14,8 @@ class GSFilmsColors {
   static const white = Color(0xFFFFFFFF);
   static const error = Color(0xFFFF4444);
   static const success = Color(0xFF00FF88);
+  static const red = Color(0xFFFF0000); // ← Añadido para compatibilidad
 }
-
 
 class FontSizes {
   static const double displayLarge = 57.0;
