@@ -5,20 +5,20 @@ version: 1.0.1+1
 
 environment:
   sdk: ^3.6.0
+  flutter: ">=3.24.0"
 
 dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
-  google_fonts: ^6.1.0
-  http: ^1.0.0
-  shared_preferences: ^2.0.0
+  google_fonts: ^6.2.1
+  http: ^1.2.2
+  shared_preferences: ^2.3.2
   flutter_secure_storage: ^9.2.4
-  provider: ^6.0.0
-  webview_flutter: ^4.0.0
-
-  #Chached image
-  cached_network_image: ^3.3.1
+  provider: ^6.1.2
+  webview_flutter: ^4.10.0
+  cached_network_image: ^3.4.1
+  video_player: ^2.9.2  # ← ¡Agregado! Necesario para VideoPlayerController
 
 dev_dependencies:
   flutter_test:
