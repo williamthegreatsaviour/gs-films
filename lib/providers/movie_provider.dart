@@ -57,7 +57,6 @@ class MovieProvider with ChangeNotifier {
       notifyListeners();
       return updatedMovie;
     } catch (e) {
-      // Opcional: podrías agregar un error temporal aquí, pero no es crítico
       rethrow;
     }
   }
