@@ -51,12 +51,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 16),
                   Text(
                     movieProvider.error!,
+                    textAlign: TextAlign.center, // ✅ CORRECTO: fuera de 'style'
                     style: const TextStyle(
                       color: GSFilmsColors.white,
                       fontSize: 16,
-                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton(
