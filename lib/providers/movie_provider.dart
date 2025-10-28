@@ -3,14 +3,21 @@ import 'package:cinepulso/models/movie.dart';
 import 'package:cinepulso/services/api_service.dart';
 
 class MovieProvider with ChangeNotifier {
+  // === Películas generales (catálogo) ===
   List<Movie> _movies = [];
   bool _isLoading = false;
   String? _error;
 
+  // === Películas rentadas (para MyMoviesScreen) ===
+  List<Movie> _rentedMovies = [];
+
+  // Getters públicos
   List<Movie> get movies => _movies;
+  List<Movie> get rentedMovies => _rentedMovies;
   bool get isLoading => _isLoading;
   String? get error => _error;
 
+  // === Cargar catálogo principal ===
   Future<void> fetchMovies() async {
     _isLoading = true;
     _error = null;
@@ -46,10 +53,29 @@ class MovieProvider with ChangeNotifier {
     }
   }
 
+  // === Cargar películas rentadas ===
+  Future<void> loadRentedMovies(String userId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _rentedMovies = await ApiService.getRentedMovies(userId);
+    } catch (e) {
+      _error = 'No se pudieron cargar tus películas rentadas.';
+      _rentedMovies = [];
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // === Reintentar la última operación (solo para catálogo principal) ===
   Future<void> retry() async {
     await fetchMovies();
   }
 
+  // === Toggle Like ===
   Future<Movie> toggleLike(String movieId) async {
     try {
       final updatedMovie = await ApiService.toggleLike(movieId);
@@ -61,6 +87,7 @@ class MovieProvider with ChangeNotifier {
     }
   }
 
+  // === Toggle Watchlist ===
   Future<Movie> toggleWatchlist(String movieId) async {
     try {
       final updatedMovie = await ApiService.toggleWatchlist(movieId);
