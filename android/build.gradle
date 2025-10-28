@@ -22,12 +22,13 @@ subprojects {
         if (project.hasProperty("kotlin")) {
             project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
                 kotlinOptions {
-                    jvmTarget = "1.8"
+                    // [CAMBIO CLAVE 3]: Forzar jvmTarget 11 para todos los subproyectos/plugins
+                    jvmTarget = "11"
                 }
             }
         }
     }
-} 
+}
  
 subprojects {
     afterEvaluate { project ->
