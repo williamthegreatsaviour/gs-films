@@ -11,9 +11,13 @@ class MovieProvider with ChangeNotifier {
   // === Películas rentadas (para MyMoviesScreen) ===
   List<Movie> _rentedMovies = [];
 
+  // === Resultados de búsqueda ===
+  List<Movie> _searchResults = [];
+
   // Getters públicos
   List<Movie> get movies => _movies;
   List<Movie> get rentedMovies => _rentedMovies;
+  List<Movie> get searchResults => _searchResults; // ✅ nuevo
   bool get isLoading => _isLoading;
   String? get error => _error;
 
@@ -22,10 +26,8 @@ class MovieProvider with ChangeNotifier {
     _isLoading = true;
     _error = null;
     notifyListeners();
-
     try {
       _movies = await ApiService.getMovies();
-
       // Obtener adTagUrl personalizado para cada película
       for (int i = 0; i < _movies.length; i++) {
         final adUrl = await ApiService.getAdTagUrl(_movies[i].id);
@@ -58,7 +60,6 @@ class MovieProvider with ChangeNotifier {
     _isLoading = true;
     _error = null;
     notifyListeners();
-
     try {
       _rentedMovies = await ApiService.getRentedMovies(userId);
     } catch (e) {
@@ -68,6 +69,28 @@ class MovieProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  // === Buscar películas ===
+  Future<void> searchMovies(String query) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      _searchResults = await ApiService.searchMovies(query);
+    } catch (e) {
+      _error = 'No se pudo realizar la búsqueda';
+      _searchResults = [];
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // === Limpiar resultados de búsqueda ===
+  void clearSearchResults() {
+    _searchResults = [];
+    notifyListeners();
   }
 
   // === Reintentar la última operación (solo para catálogo principal) ===
