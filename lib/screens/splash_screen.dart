@@ -1,4 +1,3 @@
-// lib/screens/splash_screen.dart
 import 'package:cinepulso/providers/auth_provider.dart';
 import 'package:cinepulso/screens/home_screen.dart';
 import 'package:cinepulso/screens/login_screen.dart';
