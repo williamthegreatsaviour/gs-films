@@ -1,11 +1,10 @@
+// lib/services/storage_service.dart
 import 'dart:convert';
 import 'package:cinepulso/models/user.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:crypto/crypto.dart';
 
 class StorageService {
   static final _secureStorage = const FlutterSecureStorage();
-
   static const _keyUser = 'user_data';
   static const _keyToken = 'user_token';
 
@@ -14,9 +13,10 @@ class StorageService {
     final userJson = jsonEncode(user.toJson());
     await _secureStorage.write(key: _keyUser, value: userJson);
 
-    // Crea un token seguro a partir del username y timestamp
-    final token = base64Url.encode(sha256.convert(utf8.encode('${user.username}_${DateTime.now().millisecondsSinceEpoch}')).bytes);
-    await _secureStorage.write(key: _keyToken, value: token);
+    // ✅ Guarda el token real que viene del backend
+    if (user.token != null) {
+      await _secureStorage.write(key: _keyToken, value: user.token!);
+    }
   }
 
   /// Obtiene usuario guardado
