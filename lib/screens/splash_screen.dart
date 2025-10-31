@@ -2,7 +2,7 @@ import 'package:cinepulso/providers/auth_provider.dart';
 import 'package:cinepulso/screens/home_screen.dart';
 import 'package:cinepulso/screens/login_screen.dart';
 import 'package:cinepulso/theme.dart';
-import 'package:cinepulso/widgets/cached_network_image.dart'; // ✅ nombre correcto
+import 'package:cinepulso/widgets/cached_network_image.dart'; 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
