@@ -1,3 +1,4 @@
+// lib/widgets/movie_card.dart
 import 'package:flutter/material.dart';
 import 'package:cinepulso/models/movie.dart';
 import 'package:cinepulso/theme.dart';
@@ -133,7 +134,7 @@ class MovieCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Like Button
+                  // Like & Watchlist Buttons
                   Positioned(
                     top: 8,
                     right: 8,
@@ -151,10 +152,10 @@ class MovieCard extends StatelessWidget {
                         ),
                         IconButton(
                           icon: Icon(
-                            movie.isInWatchlist
+                            movie.inWatchlist // ✅ CORREGIDO: era isInWatchlist
                                 ? Icons.bookmark
                                 : Icons.bookmark_border,
-                            color: movie.isInWatchlist
+                            color: movie.inWatchlist // ✅ CORREGIDO
                                 ? GSFilmsColors.neonGold
                                 : GSFilmsColors.white,
                           ),
