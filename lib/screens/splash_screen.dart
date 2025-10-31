@@ -104,7 +104,7 @@ class _SplashScreenState extends State<SplashScreen>
                         child: SizedBox(
                           width: 150,
                           height: 150,
-                          child: cachedImageNetwork( // ✅ CORREGIDO: era cachedImageNetwort
+                          child: cachedImageNetwork( 
                             'https://pixabay.com/get/gf8b2eac757136f378deb54ab8d62cdc3affecac337eb9f9cf5caf0793a061990b01f792f128d4a5f06d0930f2ba863e874f15e275524632a6da9bc1e263f6d85_1280.png',
                           ),
                         ),
