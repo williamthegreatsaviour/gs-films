@@ -1,8 +1,9 @@
+// lib/screens/splash_screen.dart
 import 'package:cinepulso/providers/auth_provider.dart';
 import 'package:cinepulso/screens/home_screen.dart';
 import 'package:cinepulso/screens/login_screen.dart';
 import 'package:cinepulso/theme.dart';
-import 'package:cinepulso/widgets/cached_network_image.dart';
+import 'package:cinepulso/widgets/cached_network_image.dart'; // ✅ nombre correcto
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -48,7 +49,6 @@ class _SplashScreenState extends State<SplashScreen>
 
     if (!mounted) return;
 
-    // NOTA: Reemplaza AuthProvider por el provider real si tiene un nombre diferente
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     await authProvider.initialize();
 
@@ -94,8 +94,7 @@ class _SplashScreenState extends State<SplashScreen>
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color:
-                                GSFilmsColors.neonGold.withValues(alpha: 0.3),
+                            color: GSFilmsColors.neonGold.withValues(alpha: 0.3),
                             blurRadius: 20,
                             spreadRadius: 2,
                           ),
@@ -104,22 +103,23 @@ class _SplashScreenState extends State<SplashScreen>
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(20),
                         child: SizedBox(
-                            width: 150,
-                            height: 150,
-                            child: cachedImageNetwort(
-                                'https://pixabay.com/get/gf8b2eac757136f378deb54ab8d62cdc3affecac337eb9f9cf5caf0793a061990b01f792f128d4a5f06d0930f2ba863e874f15e275524632a6da9bc1e263f6d85_1280.png')),
+                          width: 150,
+                          height: 150,
+                          child: cachedImageNetwork( // ✅ CORREGIDO: era cachedImageNetwort
+                            'https://pixabay.com/get/gf8b2eac757136f378deb54ab8d62cdc3affecac337eb9f9cf5caf0793a061990b01f792f128d4a5f06d0930f2ba863e874f15e275524632a6da9bc1e263f6d85_1280.png',
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 30),
                     // GSFilms Text
                     Text(
                       'GSFilms',
-                      style:
-                          Theme.of(context).textTheme.displayMedium?.copyWith(
-                                color: GSFilmsColors.neonGold,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 2,
-                              ),
+                      style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                            color: GSFilmsColors.neonGold,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 2,
+                          ),
                     ),
                     const SizedBox(height: 10),
                     Text(
