@@ -11,12 +11,15 @@ class User {
     this.token,
   });
 
+  // Constructor que mapea el JSON de Laravel
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id']?.toString() ?? '',
-      username: json['username'] ?? '',
+      // Mapea 'full_name' (de Laravel) a 'username' (en Flutter)
+      username: json['full_name'] ?? json['username'] ?? '',
       email: json['email'] ?? '',
-      token: json['token'],
+      // Mapea 'api_token' (de Laravel) a 'token' (en Flutter)
+      token: json['api_token'],
     );
   }
 
