@@ -10,9 +10,10 @@ class ApiException implements Exception {
 }
 
 class ApiService {
-  static const String baseUrl = 'https://gsfilms.com.mx/api';
+  
+  static const String baseUrl = 'https://gsfilms.com.mx/public/api';
 
-  /// LOGIN (FUNCIÓN ACTUALIZADA)
+  /// LOGIN
   static Future<User?> login(String email, String password) async {
     final url = Uri.parse('$baseUrl/login');
 
@@ -24,32 +25,25 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        // --- ÉXITO: Laravel ahora garantiza {"success": true, "user": {...}}
         final data = jsonDecode(response.body);
-        
+
         if (data['success'] == true && data['user'] != null) {
           final user = User.fromJson(data['user']);
           await StorageService.saveUser(user);
           return user;
         } else {
-          // Esto solo ocurriría si el servidor devuelve 200 pero el JSON es inesperado.
           throw ApiException(data['message'] ?? 'Respuesta de servidor inválida.');
         }
-
       } else {
-        // --- FALLO DE AUTENTICACIÓN: Maneja 401, 403, 406 de Laravel
         try {
           final errorData = jsonDecode(response.body);
-          // Muestra el mensaje de error que viene de Laravel (ej. "Credenciales incorrectas")
           throw ApiException(errorData['message'] ?? 'Error de autenticación: ${response.statusCode}');
         } catch (e) {
-          // Error genérico si el servidor no devuelve un JSON válido
-          throw ApiException('Error del servidor: ${response.statusCode}. La conexión es segura, revise credenciales.');
+          throw ApiException('Error del servidor: ${response.statusCode}.');
         }
       }
     } catch (e) {
       if (e is ApiException) rethrow;
-      // Captura errores de red (ej. sin internet, timeout)
       throw ApiException('Error de conexión. Intenta nuevamente.');
     }
   }
@@ -200,7 +194,7 @@ class ApiService {
       final data = jsonDecode(response.body);
       return data['ad_tag_url'] as String?;
     } else {
-      return null; // Por defecto se puede usar un adTagUrl general en el reproductor
+      return null;
     }
   }
 
